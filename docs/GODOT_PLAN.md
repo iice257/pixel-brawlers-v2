@@ -46,7 +46,8 @@ Every gate needs four things: `tools/run_tests.sh` green, the Pages build live, 
 60 Hz placeholder sim, animation contract, Controls autoload, GUT (9 tests), CI, Pages.
 
 ### A0: Asset lock (orchestrator + owner; the builder can start G1-core in parallel)
-- The owner picks the fighter pack (options are in the orchestrator's message and `docs/ASSETS.md`).
+- The fighter kit is decided (owner, 2026-10-19): it combines free packs anchored on Oonquil's free trio, with gaps filled from existing frames and every sheet run through the `tools/unify` pipeline so the packs look like one game. Paid drop-ins are listed for later. The full spec is in `docs/ASSETS.md`.
+- Build `tools/unify` and produce the contact sheets. The orchestrator reviews them before any import.
 - Audit every animation: name, frame count, frame size, pivot, and whether a hit frame exists. Record it in `docs/ASSETS.md` together with the source URL and licence.
 - Write `docs/MOVES.md`: the final move list per fighter, mapped onto pack animations, with v1 frame data used as the starting numbers.
 - Choose the base resolution for the sprite size: keep 384x216 if fighters are 80 px tall or less; otherwise use 480x270, with integer scaling either way.
@@ -113,4 +114,4 @@ The orchestrator owns this plan, MOVES.md, ASSETS.md and ART_PROMPTS.md, reviews
 | Generated art clashes with the pack's style | Pixelize pass plus palette lock. The owner reviews at A0 before integration. |
 | Mixed sprite sizes between fighters | All fighters come from one artist, or are rescaled by an integer factor only. |
 | Web export issues (audio, focus, threads) | The single-threaded build is already on Pages. Check every gate live. |
-| Token burn on tooling | Only the box editor and the import and pixelize scripts are allowed as custom tools. |
+| Token burn on tooling | Only the box editor and the import, unify and pixelize scripts are allowed as custom tools. |
