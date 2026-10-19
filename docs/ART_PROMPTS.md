@@ -1,5 +1,7 @@
 # Generated art: 7 images, 15 items
 
+> **Superseded in part (2026-10-19):** the art direction is now a steampunk 2.5D anime fighter. See `docs/ART_DIRECTION.md` and `docs/HANDOFF.md`. Anything here that assumes pixel art is void.
+
 These prompts are written for any modern image model (Gemini / Nano Banana, GPT Image, Midjourney, Ideogram for text-heavy items). Generate from text only, and never upload pack sprites as references; see GODOT_PLAN "Generated art".
 
 **Use the same style block in every prompt** so the set reads as one game. Paste it at the end of each prompt:

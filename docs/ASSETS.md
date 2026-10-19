@@ -1,5 +1,7 @@
 # Assets: free kit now, paid drop-ins later
 
+> **Superseded in part (2026-10-19):** the art direction is now a steampunk 2.5D anime fighter. See `docs/ART_DIRECTION.md` and `docs/HANDOFF.md`. Anything here that assumes pixel art is void.
+
 Owner rulings (2026-10-19):
 - Use free assets for now.
 - Combine several free packs, but they must look like one game.

@@ -1,5 +1,7 @@
 # Pixel Brawlers v2 (Godot 4): build plan
 
+> **Superseded in part (2026-10-19):** the art direction is now a steampunk 2.5D anime fighter. See `docs/ART_DIRECTION.md` and `docs/HANDOFF.md`. Anything here that assumes pixel art is void.
+
 Rev 2 (2026-10-19). Replaces rev 1. The main changes: real art comes before depth, the move list is fitted to the art pack before combat is built, and the design target shrinks to what free or cheap packs can actually animate.
 
 The owner decided on a brand-new Godot 4 project with imported assets. v1 (`pixel-brawlers`, JS) stays playable as the reference until v2 reaches parity (defined in G5), and is then archived.
