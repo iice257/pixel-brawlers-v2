@@ -1,0 +1,6 @@
+{
+  "id": "placeholder",
+  "name": "PLACEHOLDER",
+  "stats": { "hp": 1000, "walk_f": 2.1, "walk_b": 1.7, "jump": 1.0, "gravity": 0.41, "throw_range": 46, "height": 100 },
+  "moves": ["LP", "HP", "LK", "HK", "2LP", "2HP", "2LK", "2HK", "jLP", "jHP", "jLK", "jHK", "throw"]
+}

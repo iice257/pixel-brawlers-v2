@@ -1,4 +1,4 @@
-name: Smoke test, web export, deploy to Pages
+name: Tests, web export, deploy to Pages
 
 on:
   push:
@@ -43,8 +43,8 @@ jobs:
           rm -rf templates *.zip *.tpz
       - name: Import
         run: ~/godot/godot --headless --path . --import
-      - name: Smoke test
-        run: ~/godot/godot --headless --path . --script res://tools/smoke.gd
+      - name: Tests (GUT) + smoke
+        run: GODOT=~/godot/godot sh tools/run_tests.sh
       - name: Export web (single-threaded, no special headers needed)
         run: |
           mkdir -p build/web

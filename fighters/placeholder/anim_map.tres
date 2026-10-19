@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="AnimMap" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://fighters/anim_map.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+fighter_id = "placeholder"
+source = "placeholder"
+entries = {
+"idle": {"sheet": "", "frames": 1, "fps": 12, "loop": true, "color": Color(0.21, 0.88, 1, 1)},
+"walk_f": {"sheet": "", "frames": 1, "fps": 12, "loop": true, "color": Color(0.4, 0.95, 0.75, 1)},
+"walk_b": {"sheet": "", "frames": 1, "fps": 12, "loop": true, "color": Color(0.3, 0.6, 0.95, 1)},
+"crouch": {"sheet": "", "frames": 1, "fps": 12, "loop": true, "color": Color(0.55, 0.45, 1, 1)},
+"jump_up": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.81, 0.2, 1)},
+"jump_f": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.7, 0.2, 1)},
+"jump_b": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(0.95, 0.6, 0.3, 1)},
+"block_stand": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(0.42, 0.82, 0.42, 1)},
+"block_crouch": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(0.3, 0.7, 0.3, 1)},
+"hit_light": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.5, 0.5, 1)},
+"hit_heavy": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.3, 0.3, 1)},
+"knockdown": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(0.7, 0.2, 0.2, 1)},
+"wakeup": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(0.8, 0.6, 0.6, 1)},
+"ko": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(0.4, 0.4, 0.4, 1)},
+"win": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 1, 1, 1)},
+"LP": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.85, 0.4, 1)},
+"HP": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.85, 0.4, 1)},
+"LK": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.6, 0.39, 1)},
+"HK": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.6, 0.39, 1)},
+"2LP": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.85, 0.4, 1)},
+"2HP": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.85, 0.4, 1)},
+"2LK": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.6, 0.39, 1)},
+"2HK": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.6, 0.39, 1)},
+"jLP": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.85, 0.4, 1)},
+"jHP": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.85, 0.4, 1)},
+"jLK": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.6, 0.39, 1)},
+"jHK": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.6, 0.39, 1)},
+"throw": {"sheet": "", "frames": 1, "fps": 12, "loop": false, "color": Color(1, 0.85, 0.4, 1)}
+}
