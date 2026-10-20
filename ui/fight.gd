@@ -3,7 +3,7 @@ extends Node2D
 ## Fighters are placeholder rectangles tinted by their anim_map entry until a sprite pack is mapped (G3).
 ## F2 toggles the box overlay, R resets. User arg --shot=<file.png> plays a scripted walk + jump, saves the frame and quits (QA).
 
-const BUTTONS := { "lp": SimConst.LP, "hp": SimConst.HP, "lk": SimConst.LK, "hk": SimConst.HK, "block": SimConst.BL, "throw": SimConst.THROW }
+const BUTTONS := { "light": SimConst.L, "medium": SimConst.M, "heavy": SimConst.H, "special": SimConst.S, "block": SimConst.BL, "throw": SimConst.THROW }
 const BOX_COLORS := { "push": Color("4da3ff"), "hurt": Color("41e07a") }
 
 var world: WorldSim

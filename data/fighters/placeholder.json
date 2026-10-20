@@ -1,6 +1,313 @@
 {
-  "id": "placeholder",
-  "name": "PLACEHOLDER",
-  "stats": { "hp": 1000, "walk_f": 2.1, "walk_b": 1.7, "jump": 1.0, "gravity": 0.41, "throw_range": 46, "height": 100 },
-  "moves": ["LP", "HP", "LK", "HK", "2LP", "2HP", "2LK", "2HK", "jLP", "jHP", "jLK", "jHK", "throw"]
+ "id": "placeholder",
+ "name": "PLACEHOLDER",
+ "stats": {
+  "hp": 1000,
+  "walk_f": 2.1,
+  "walk_b": 1.7,
+  "jump": 1.0,
+  "gravity": 0.41,
+  "pwr": 1.0,
+  "def": 1.0,
+  "height": 100
+ },
+ "moves": {
+  "L": {
+   "id": "L",
+   "anim": "L",
+   "kind": "ground",
+   "weight": 1,
+   "startup": 4,
+   "active": 2,
+   "recovery": 6,
+   "cancels": {
+    "chain": true,
+    "special": true
+   },
+   "hits": [
+    {
+     "from": 5,
+     "to": 6,
+     "box": [
+      10,
+      56,
+      34,
+      16
+     ],
+     "dmg": 30,
+     "hitstun": 11,
+     "blockstun": 8,
+     "hitstop": 7,
+     "pb_hit": 1.6,
+     "pb_block": 2.2,
+     "kd": "none",
+     "launch": [
+      0,
+      0
+     ],
+     "juggle_cost": 1,
+     "juggle_start": 0,
+     "heavy": false
+    }
+   ]
+  },
+  "M": {
+   "id": "M",
+   "anim": "M",
+   "kind": "ground",
+   "weight": 2,
+   "startup": 7,
+   "active": 3,
+   "recovery": 12,
+   "cancels": {
+    "chain": true,
+    "special": true
+   },
+   "hits": [
+    {
+     "from": 8,
+     "to": 10,
+     "box": [
+      10,
+      46,
+      40,
+      22
+     ],
+     "dmg": 60,
+     "hitstun": 17,
+     "blockstun": 11,
+     "hitstop": 9,
+     "pb_hit": 2.0,
+     "pb_block": 2.8,
+     "kd": "none",
+     "launch": [
+      0,
+      0
+     ],
+     "juggle_cost": 1,
+     "juggle_start": 0,
+     "heavy": true
+    }
+   ]
+  },
+  "H": {
+   "id": "H",
+   "anim": "H",
+   "kind": "ground",
+   "weight": 3,
+   "startup": 10,
+   "active": 4,
+   "recovery": 18,
+   "cancels": {
+    "chain": false,
+    "special": false
+   },
+   "hits": [
+    {
+     "from": 11,
+     "to": 14,
+     "box": [
+      8,
+      40,
+      48,
+      30
+     ],
+     "dmg": 90,
+     "hitstun": 22,
+     "blockstun": 14,
+     "hitstop": 10,
+     "pb_hit": 2.6,
+     "pb_block": 3.4,
+     "kd": "soft",
+     "launch": [
+      2.5,
+      4.5
+     ],
+     "juggle_cost": 2,
+     "juggle_start": 3,
+     "heavy": true
+    }
+   ]
+  },
+  "S": {
+   "id": "S",
+   "anim": "S",
+   "kind": "ground",
+   "weight": 3,
+   "startup": 9,
+   "active": 3,
+   "recovery": 18,
+   "cancels": {
+    "chain": false,
+    "special": false
+   },
+   "hits": [
+    {
+     "from": 10,
+     "to": 12,
+     "box": [
+      10,
+      40,
+      52,
+      28
+     ],
+     "dmg": 70,
+     "hitstun": 20,
+     "blockstun": 13,
+     "hitstop": 10,
+     "pb_hit": 2.4,
+     "pb_block": 3.2,
+     "kd": "soft",
+     "launch": [
+      2.0,
+      4.0
+     ],
+     "juggle_cost": 2,
+     "juggle_start": 0,
+     "heavy": true
+    }
+   ]
+  },
+  "jL": {
+   "id": "jL",
+   "anim": "jL",
+   "kind": "air",
+   "weight": 1,
+   "startup": 4,
+   "active": 6,
+   "recovery": 6,
+   "cancels": {
+    "chain": false,
+    "special": false
+   },
+   "hits": [
+    {
+     "from": 5,
+     "to": 10,
+     "box": [
+      6,
+      10,
+      34,
+      30
+     ],
+     "dmg": 30,
+     "hitstun": 11,
+     "blockstun": 8,
+     "hitstop": 7,
+     "pb_hit": 1.2,
+     "pb_block": 1.6,
+     "kd": "none",
+     "launch": [
+      0,
+      0
+     ],
+     "juggle_cost": 1,
+     "juggle_start": 0,
+     "heavy": false
+    }
+   ],
+   "land_lag": 3
+  },
+  "jM": {
+   "id": "jM",
+   "anim": "jM",
+   "kind": "air",
+   "weight": 2,
+   "startup": 6,
+   "active": 6,
+   "recovery": 8,
+   "cancels": {
+    "chain": false,
+    "special": false
+   },
+   "hits": [
+    {
+     "from": 7,
+     "to": 12,
+     "box": [
+      6,
+      10,
+      38,
+      34
+     ],
+     "dmg": 55,
+     "hitstun": 15,
+     "blockstun": 10,
+     "hitstop": 9,
+     "pb_hit": 1.4,
+     "pb_block": 2.0,
+     "kd": "none",
+     "launch": [
+      0,
+      0
+     ],
+     "juggle_cost": 1,
+     "juggle_start": 0,
+     "heavy": true
+    }
+   ],
+   "land_lag": 3
+  },
+  "jH": {
+   "id": "jH",
+   "anim": "jH",
+   "kind": "air",
+   "weight": 3,
+   "startup": 8,
+   "active": 6,
+   "recovery": 10,
+   "cancels": {
+    "chain": false,
+    "special": false
+   },
+   "hits": [
+    {
+     "from": 9,
+     "to": 14,
+     "box": [
+      4,
+      8,
+      42,
+      38
+     ],
+     "dmg": 80,
+     "hitstun": 20,
+     "blockstun": 13,
+     "hitstop": 10,
+     "pb_hit": 1.6,
+     "pb_block": 2.4,
+     "kd": "soft",
+     "launch": [
+      2.0,
+      3.0
+     ],
+     "juggle_cost": 2,
+     "juggle_start": 0,
+     "heavy": true
+    }
+   ],
+   "land_lag": 3
+  },
+  "throw": {
+   "id": "throw",
+   "anim": "throw",
+   "kind": "throw",
+   "weight": 0,
+   "startup": 5,
+   "active": 2,
+   "recovery": 24,
+   "cancels": {
+    "chain": false,
+    "special": false
+   },
+   "hits": [],
+   "range": 46,
+   "dmg": 100,
+   "hitstop": 12,
+   "launch": [
+    2.5,
+    4.0
+   ]
+  }
+ }
 }
