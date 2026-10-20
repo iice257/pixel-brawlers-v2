@@ -1,61 +1,56 @@
-# Generated art: 7 images, 15 items
+# Generated art: 7 images, 15 items (rev 3, steampunk 2.5D anime)
 
-> **Superseded in part (2026-10-19):** the art direction is now a steampunk 2.5D anime fighter. See `docs/ART_DIRECTION.md` and `docs/HANDOFF.md`. Anything here that assumes pixel art is void.
+Rewritten 2026-10-20 for the 3D cel-shaded steampunk direction (`docs/ART_DIRECTION.md`). The pixel-art prompts are gone.
 
-These prompts are written for any modern image model (Gemini / Nano Banana, GPT Image, Midjourney, Ideogram for text-heavy items). Generate from text only, and never upload pack sprites as references; see GODOT_PLAN "Generated art".
+These prompts are for any modern image model (Gemini / Nano Banana, GPT Image, Midjourney; use Ideogram for the lettering in images 1 and 7). Generate from text only. Never upload third-party art as a reference.
 
-**Use the same style block in every prompt** so the set reads as one game. Paste it at the end of each prompt:
+**Paste the style block at the end of every prompt** so the set reads as one game.
 
-> STYLE: 16-bit arcade fighting-game pixel art, 1990s cabinet era. Chunky dark outlines, hard cel shading with 3-5 tones per material, no gradients, no blur, no anti-aliasing, no photo texture. Limited saturated palette on near-black: background #0a0714, panel violet #1a1030, edge purple #46327a, gold accent #ffcf33, player-1 cyan #35c8e0, player-2 red #ff5a4a, neon pink #ff3ea5. Crisp readable shapes, strong silhouettes, dramatic rim light (cyan from the left, pink from the right). No watermark, no signature, no extra text unless asked.
+> STYLE: stylised anime illustration in the spirit of JoJo's Bizarre Adventure: All-Star Battle crossed with Arcane and Genshin Impact. Bold manga ink linework with varied line weight, heavy black shadow shapes, hard two-band cel shading, screentone and hatching in the deepest shadows, dramatic poses. Steampunk palette: brass #c9a14a, copper #b8643a, oxidised teal #2f7f7a, soot #14121a, cream steam #efe6d2, with one hot accent of glowing amber #ffb347. Painterly, hand-brushed backgrounds in Arcane's style. Clean Genshin-style anime faces. No watermark, no signature, no text unless asked.
 
-**Roster used in the prompts** (v1's own characters). If the chosen pack's fighters replace them, swap these descriptions for the pack characters' looks before generating:
-- **SURGE**, the cyan corner: lean, muscular karate-boxer, bare chest, tall swept-back spiky teal hair, red trunks, white hand wraps, cyan armband, intense squint.
-- **BRICK**, the red corner: broad blond brawler, flat-top spiky hair, white tank top, jeans, black fingerless gloves, gold belt buckle, toothpick, cocky grin.
-- **JUNO**: agile kung-fu fighter, red-orange high ponytail, ivory crop top and wraps, flared black-violet pants, gold sash, confident smirk, small orange fire at her fist.
-- **BASALT**: huge bald bearded grappler, tiny head between massive shoulders, leather apron, iron gauntlets with glowing ember cracks, ember eyes, scar.
+**Roster used in the prompts.** No elemental powers: the tech is gadgets, gauntlets, pistons and steam.
+- **KESTREL** (launch fighter 1): lean airship duellist, late 20s, short swept-back dark hair, brass goggles pushed up on the forehead, a cropped teal coat with brass buttons, piston-assisted gauntlets, a belt of small gears and pressure gauges, fast and confident.
+- **BRIGGS** (launch fighter 2): broad foundry brawler, 40s, shaved head, thick moustache, a scarred leather apron over a bare chest, one oversized hydraulic gauntlet arm with a glowing amber vent, heavy boots.
+- Later roster (concept sheets come in G4): **ODILE** (gadgeteer with a clockwork backpack), **TOBIAS** (old watchmaker martial artist), **VESPER** (masked clockwork assassin), **ROOK** (smog-district youth with a chain hook).
 
-**Post-process** (done by the builder with `tools/pixelize`): crop, downscale with nearest-neighbour to the target size, quantise to the palette, and key out the `#00FF00` backgrounds. The target sizes assume the 384x216 base (the 480x270 sizes are in brackets).
+**Handling after generation:** the builder crops, downsizes to the target sizes (power-of-two for textures, width 2048 or less) and keys out `#00FF00` backgrounds. Originals live in `assets/_source/`. Processed files go in `assets/ui/`, `assets/stages/` and `assets/concept/`. Concept images are references for modelling, not shipped.
 
 ---
 
 ## Image 1: Logo (1 item)
-Aspect 3:1. Target 256x80 [320x100]. An Ideogram-class model is best for the lettering.
+Aspect 3:1. Target 1024x340.
 
-> Game logo wordmark reading exactly "PIXEL BRAWLERS", two stacked lines: "PIXEL" smaller on top, "BRAWLERS" large and wide below. Thick blocky arcade letters with a heavy black outline, a gold-to-orange banded fill (hard colour bands, not a smooth gradient), a cyan inner highlight on the top edge, a slight forward italic lean, and a small jagged impact burst behind the "B". Centred on a flat pure green #00FF00 background with nothing else in frame. STYLE: [style block]
+> Game logo wordmark reading exactly "PIXEL BRAWLERS" on two lines, "PIXEL" smaller above, "BRAWLERS" large and wide below. Heavy engraved brass letters with a thick black ink outline and a bevelled metal highlight, rivets at the corners, small gears and a wisp of steam tucked behind the "B", a slight forward lean, and a jagged manga impact burst behind the whole mark. Centred on a flat pure green #00FF00 background with nothing else in the frame. STYLE: [style block]
 
-## Image 2: Key art, doubling as the page/portfolio banner (2 items)
-Aspect 21:9 (about 2560x1100). Uses: the title-screen hero image (crop the centre to 16:9) and the GitHub/portfolio banner (the full width).
+## Image 2: Key art, cropped into the banner and the menu background (3 items: key art, banner, menu background)
+Aspect 21:9 (about 2560x1100). Crop the centre to 16:9 for the title hero, use the full width for the portfolio banner, and use the darkened right half as the menu background.
 
-> Wide cinematic fighting-game key art. SURGE (left) and BRICK (right) face off at the centre, about to clash, fists cocked and shoulders squared. They are drawn from the waist up, filling the middle 60% of the frame, with an energy spark exploding between their fists. Behind them is a neon city rooftop at night: a purple-to-magenta dithered sky, a big striped retro sun low on the horizon, skyscraper silhouettes with pink and cyan neon signs. SURGE is rim-lit cyan, BRICK rim-lit red. Keep the top 20% fairly calm so a logo can sit there. There is no text. [descriptions of SURGE and BRICK from the roster] STYLE: [style block]
+> Wide cinematic fighting-game key art. KESTREL (left) and BRIGGS (right) lunge at each other at the centre in a mirror pose, fists meeting in a burst of steam and sparks, with a manga speed-line background and inked impact lines radiating out. They fill the middle 55% of the frame, drawn from the knees up. Behind them is an Arcane-style steampunk city at dusk: brass towers, airships, copper pipes venting steam, warm amber windows, a teal-violet sky. KESTREL is rim-lit teal and BRIGGS rim-lit amber. Keep the top 20% fairly calm for a logo. There is no text. [KESTREL and BRIGGS descriptions] STYLE: [style block]
 
-## Image 3: Character-select portraits (4 items)
-Aspect 1:1 (2048x2048), a 2x2 grid. Target 96x96 per portrait. These are kept in one image so the four share lighting and line weight. If the quality is soft, run the same prompt four times with "single portrait" and one character each; that is still 4 items.
+## Image 3: Character concept sheets (2 items: KESTREL sheet, BRIGGS sheet)
+Aspect 16:9 (2560x1440). Two rows, one fighter each, so neither is cramped. These are modelling references for VRoid and Blender, so keep the views orthographic and consistent.
 
-> A 2x2 grid of four fighting-game character-select portraits, equal square cells separated by thin black gutters. Each is a bust (head, shoulders and one raised fist) facing three-quarters toward the viewer's right, the face fills about 45% of its cell, and each cell has a solid near-black #0a0714 background. Top-left SURGE, top-right BRICK, bottom-left JUNO, bottom-right BASALT. Each character has a strong expression and a coloured rim light in their accent colour (SURGE cyan, BRICK gold, JUNO orange, BASALT ember). Use the same line weight and the same light direction for all four. There is no text and no names. [all four roster descriptions] STYLE: [style block]
+> A character design reference sheet in two horizontal rows. TOP ROW: KESTREL in a neutral standing pose, shown in front view, side view and back view at the same scale, plus a close-up of the face and a small panel of the goggles, gauntlet and belt details. BOTTOM ROW: BRIGGS, the same layout. Plain light grey background, even lighting, flat colour with thin ink lines, a labelled colour swatch strip under each row (no text other than swatch hex codes is needed). Keep proportions consistent between views. [KESTREL and BRIGGS descriptions] STYLE: [style block]
 
-## Image 4: HUD kit (3 items: health bars with round pips, timer plate, combo badge)
-Aspect 16:9. Targets: a health bar frame of 150x14 per side, a timer plate of 32x24, a combo badge of 64x24.
+## Image 4: Character-select portraits (2 items: KESTREL, BRIGGS)
+Aspect 16:9 (2560x1440), two large cells side by side so each portrait gets full detail. Target 512x512 per portrait after a square crop. The other four portraits are generated in G4.
 
-> A game UI sprite sheet on a flat pure green #00FF00 background, with the elements spaced far apart and nothing overlapping. (1) Across the top, a pair of mirrored fighting-game health bar frames, one per player, slanted parallelogram ends, a thick dark violet frame with a gold trim line. The left bar has a cyan inner edge and the right bar a red one. Each bar is empty inside (a dark #1a1030 fill) so the fill can be drawn by the game. Under each bar sit two small round-win pips: one empty and one lit gold. (2) In the middle, a small octagonal timer plate, dark violet with a gold rim, with the digits "99" in chunky pixel numerals. (3) At the bottom left, a combo badge: a slanted banner reading "HITS" in bold pixel letters with an empty space to its left for a number, gold on dark violet with a pink highlight edge. Flat front view, no perspective, no shadows on the background. STYLE: [style block]
+> Two fighting-game character-select portraits side by side, each in its own equal cell separated by a thin black gutter. Each is a bust (head, shoulders and one raised fist) in three-quarter view, the face filling about 45% of its cell, with a bold ink outline, a strong confident expression, a coloured rim light, and a solid soot-black background with faint gear and steam motifs. Left, KESTREL with teal rim light. Right, BRIGGS with amber rim light. Use the same line weight and the same light direction for both. There is no text and no names. [KESTREL and BRIGGS descriptions] STYLE: [style block]
 
-## Image 5: SKYLINE 88 stage (1 item)
-Aspect 16:9 (wider is fine, up to 2.4:1 for camera scroll). Target 576x216 [720x270]. The builder slices it into a sky layer and a rooftop layer for parallax.
+## Image 5: Stage 1, AIRSHIP DECK far backdrop (1 item)
+Aspect 21:9 (3072x1316). Used as the painted far plane. The 3D mid plane (railings, rigging, crates) is built from kits, so keep this image to sky and distance.
 
-> A side-view background for a 2D fighting game, with no characters in it. A neon city rooftop at night. The sky is a dithered band gradient from deep indigo #0a0620 at the top through purple to magenta #c24a8a at the horizon, with small twinkling stars and a large retro sun disc with horizontal stripes sitting low on the horizon. Behind it is a far skyline of dark skyscraper silhouettes with tiny lit windows. In the mid-ground are lit buildings with neon signs in pink #ff3ea5, cyan #35e0ff and amber #ffb02e, one billboard showing a steaming noodle bowl, and one showing a flickering "88". On a near rooftop sit a water tank, AC units and an antenna with a red light. The fighting floor is a flat, wide strip of dark concrete across the bottom 18% of the image, with painted lines and puddles reflecting neon smears; it is empty and unobstructed. A low parapet wall with graffiti and swaying string lights runs behind the floor. The camera is perfectly level and orthographic, with no perspective tilt. STYLE: [style block]
+> A painted side-view background for a 2D fighting game, with no characters. High above the clouds at golden hour, seen from the deck of a vast brass airship. A huge sky with soft layered clouds in teal, violet and warm gold, distant airships with spinning propellers and glowing amber windows, a far brass city of towers on floating platforms, shafts of light, drifting steam and a few birds. Arcane-style hand-brushed texture, soft painterly edges, strong depth with haze in the distance. The lower 25% fades to calm dark cloud and mist so a deck floor can sit over it. The camera is level with no perspective tilt. STYLE: [style block]
 
-## Image 6: Menu background + loading screen (2 items)
-Aspect 16:9, two panels side by side (left: menu, right: loading). Target 384x216 [480x270] each. Each panel is cropped out as its own file.
+## Image 6: HUD kit (4 items: health bar frames with round pips, timer plate, combo badge, round and KO banner plate)
+Aspect 16:9. Targets: a bar frame of 600x56 per side, a timer plate of 160x120, a combo badge of 280x100, a banner plate of 900x160.
 
-> Two separate 16:9 panels side by side, divided by a thin black line. LEFT PANEL, a main-menu background: a dark arcade atmosphere with a close-up of a cracked concrete wall lit by a pink and cyan neon glow from off-screen, faint retro grid lines receding into the distance, drifting smoke. The left 45% of the panel is darker and calm for menu text; on the far right, a large faded silhouette of a fighter's raised fist wrapped in tape. RIGHT PANEL, a loading screen: the two silhouettes of SURGE (cyan rim light) and BRICK (red rim light) walking toward each other along a rooftop edge at night, small in the frame, with a large empty dark area in the lower third for a loading bar. Neither panel has any text. STYLE: [style block]
+> A game UI sprite sheet on a flat pure green #00FF00 background, elements spaced far apart and nothing overlapping. (1) A pair of mirrored fighting-game health bar frames across the top, one per player, shaped like riveted brass-and-copper pressure gauges with slanted ends and a thin ink outline; each is empty inside (a dark soot fill) so the game can draw the fill, and each has two small round brass pips underneath, one empty and one lit amber. The left frame has a teal trim, the right an amber trim. (2) In the middle, a round brass timer plate shaped like a pocket-watch, blank face, with a small gear behind it. (3) At the bottom left, a combo badge: a slanted brass banner with room on its left for a number and the word "HITS" in bold manga lettering. (4) At the bottom right, a wide banner plate for ROUND and KO announcements, riveted brass with torn-paper manga edges, blank in the middle. Flat front view, no perspective, no shadow on the background. STYLE: [style block]
 
-## Image 7: Hit FX sheet (2 items: hit sparks, energy blast)
-Aspect 16:9. Targets: 32x32 per spark frame, 48x24 per blast frame.
-**Recommendation:** buy Pozac "Combat Effects 10" ($1.99, 31 animated fighting FX) instead. Image models draw poor animation frames. If you buy the pack, use this image slot for a second stage instead (prompt below).
+## Image 7: Onomatopoeia and effect sheet (2 items: onomatopoeia sheet, screentone/impact set)
+Aspect 16:9 (3840x2160). Both items sit on one flat sheet in two clearly separated halves. Use Ideogram or similar for the lettering.
 
-> A sprite sheet on a flat pure green #00FF00 background, laid out in a strict grid with equal spacing. TOP ROW: a hit-spark impact animation in 6 frames left to right: a white-yellow star burst that grows, breaks into sharp shards and fades, with gold and white streaks and a cyan variant. BOTTOM ROW: an energy-blast projectile in 4 frames: a horizontal fireball moving right, an orange and yellow core with a white centre and a trailing tail of flame chunks. Every frame sits centred in its own cell, with nothing overlapping. STYLE: [style block]
-
-**Alternative Image 7: a second stage, TEMPLE COURTYARD at dusk (1 item).**
-> A side-view 2D fighting-game background with no characters. A temple courtyard at dusk. The sky is dithered bands from violet through rose and orange to pale gold, with a large setting sun with a ring. There are distant misty mountains and a pagoda silhouette. Cherry trees drop pink petals. Behind the floor is a wooden temple facade with red banners, paper screen doors and a big bronze gong on the left. The floor is a flat, wide band of stone tiles across the bottom 18% of the image, empty and unobstructed, with a thin koi pond strip at the front edge. The camera is level and orthographic. STYLE: [style block]
+> A sprite sheet on a flat pure green #00FF00 background in two halves. LEFT HALF, a set of eight manga sound-effect lettering pieces, each in its own cell and nothing overlapping: large chunky hand-inked Japanese katakana and Latin lettering reading "ドン", "ゴゴゴ", "ドドド", "バキッ", "ズシン", "BAM", "CRASH", "WHOOSH", each with a thick black outline, a white inner fill, speed lines and a slight skew. RIGHT HALF, an effect kit: four impact-burst shapes (a spiky white starburst, a round shockwave ring, a jagged crack burst, a diagonal slash streak), a tileable halftone screentone dot pattern in a square, a tileable diagonal hatching pattern in a square, and a set of radial speed-line backgrounds in a square, all black and white with ink linework. STYLE: [style block]
 
 ---
 
@@ -63,10 +58,12 @@ Aspect 16:9. Targets: 32x32 per spark frame, 48x24 per blast frame.
 | Image | Items |
 |---|---|
 | 1 Logo | 1 |
-| 2 Key art + banner | 2 |
-| 3 Portraits | 4 |
-| 4 HUD kit | 3 |
-| 5 SKYLINE stage | 1 |
-| 6 Menu + loading | 2 |
-| 7 FX sheet (or stage 2) | 2 (or 1) |
+| 2 Key art, banner, menu background | 3 |
+| 3 Concept sheets (KESTREL, BRIGGS) | 2 |
+| 4 Portraits (KESTREL, BRIGGS) | 2 |
+| 5 Airship deck backdrop | 1 |
+| 6 HUD kit | 4 |
+| 7 Onomatopoeia and effect sheet | 2 |
 | **Total** | **15** |
+
+Deferred to later phases (not in the 15): the clocktower stage backdrop, four more portraits and concept sheets for the later roster (G4), and a loading screen made from a crop of Image 2 or 5.

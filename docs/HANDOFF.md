@@ -13,6 +13,8 @@ This is for a fresh planner/orchestrator session that picks up Pixel Brawlers v2
 - The spec carried from v1 (rules and numbers only) is in `docs/ref/`. TUNING_LOG beats GAME_DESIGN when they conflict.
 
 ## Decisions so far (newest first)
+0. **2026-10-20 owner answers and plan rev 3.** Web first (full game in the browser, Compatibility renderer), steampunk with no elemental powers, roster 2 then 6. `docs/GODOT_PLAN.md` rev 3 is current: A0 character-pipeline proof, then G1 to G5. Crouch and lows are back; throws, overheads and meter stay deferred. `ART_PROMPTS.md` (7 images, 15 items) and `ASSETS.md` (free fetch list, Mixamo list, 3D buy-later list) are rewritten.
+
 1. **The art direction changed to a steampunk 2.5D anime fighter** (`docs/ART_DIRECTION.md`). Gameplay stays on a 2D plane. Characters are 3D cel-shaded: VRoid + Mixamo, Godot humanoid retargeting, a custom toon shader, stepped 12-15 fps animation. Environments are semi-3D with painted backdrops. Engine stays Godot (Unreal was rejected: binary assets, no web export).
 2. **Free assets for now**, with a buy-later list kept for drop-in replacements. The non-commercial project can mix licences, but everything is credited.
 3. **The design is simplified to a four-button fighter**: Light, Medium, Heavy, Special, plus hold Block, and Throw only if animated. Crouch, lows and overheads, meter, and command motions are deferred (GODOT_PLAN "Design target"). With Mixamo's large clip library, crouch and lows can come back; decide in plan rev 3.
