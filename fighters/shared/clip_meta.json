@@ -1,0 +1,107 @@
+{
+  "Crouch_Fwd": {
+    "length": 2.0,
+    "peak_t": 1.0,
+    "reach": 0.41
+  },
+  "Crouch_Idle": {
+    "length": 2.933,
+    "peak_t": 1.367,
+    "reach": 0.4
+  },
+  "Death01": {
+    "length": 2.4,
+    "peak_t": 1.467,
+    "reach": 0.798
+  },
+  "Hit_Chest": {
+    "length": 0.333,
+    "peak_t": 0.0,
+    "reach": 0.213
+  },
+  "Hit_Head": {
+    "length": 0.433,
+    "peak_t": 0.0,
+    "reach": 0.198
+  },
+  "Hit_Knockback": {
+    "length": 0.833,
+    "peak_t": 0.4,
+    "reach": 0.798
+  },
+  "Idle": {
+    "length": 2.5,
+    "peak_t": 0.2,
+    "reach": 0.2
+  },
+  "Jump": {
+    "length": 2.5,
+    "peak_t": 0.167,
+    "reach": 0.185
+  },
+  "Jump_Land": {
+    "length": 1.267,
+    "peak_t": 0.4,
+    "reach": 0.355
+  },
+  "Jump_Start": {
+    "length": 1.333,
+    "peak_t": 0.0,
+    "reach": 0.247
+  },
+  "LayToIdle": {
+    "length": 1.533,
+    "peak_t": 0.0,
+    "reach": 0.805
+  },
+  "Melee_Hook": {
+    "length": 0.467,
+    "peak_t": 0.267,
+    "reach": 0.768
+  },
+  "Melee_Hook_Rec": {
+    "length": 0.6,
+    "peak_t": 0.0,
+    "reach": 0.529
+  },
+  "OverhandThrow": {
+    "length": 1.333,
+    "peak_t": 0.383,
+    "reach": 0.644
+  },
+  "Punch_Cross": {
+    "length": 1.0,
+    "peak_t": 0.3,
+    "reach": 0.515
+  },
+  "Punch_Jab": {
+    "length": 0.867,
+    "peak_t": 0.2,
+    "reach": 0.503
+  },
+  "Roll": {
+    "length": 1.467,
+    "peak_t": 0.383,
+    "reach": 0.806
+  },
+  "Shield_Dash": {
+    "length": 1.1,
+    "peak_t": 0.1,
+    "reach": 0.637
+  },
+  "Sword_Attack": {
+    "length": 1.533,
+    "peak_t": 0.433,
+    "reach": 0.617
+  },
+  "Sword_Block": {
+    "length": 1.233,
+    "peak_t": 0.167,
+    "reach": 0.472
+  },
+  "Walk": {
+    "length": 1.333,
+    "peak_t": 0.833,
+    "reach": 0.362
+  }
+}

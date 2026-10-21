@@ -3,3 +3,6 @@ build/
 *.tmp
 .import/
 export_credentials.cfg
+
+# Third-party source models and animation packs (see assets/README.md and docs/ASSETS.md register)
+assets/src/
