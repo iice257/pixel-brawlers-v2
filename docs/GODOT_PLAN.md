@@ -29,8 +29,8 @@ Keys stay as in `scripts/autoload/controls.gd` (actions light/medium/heavy/speci
 | Item | Limit |
 |---|---|
 | Frame rate | 60 fps on a mid laptop iGPU in Chrome and Firefox |
-| Per fighter | 15k triangles or fewer, 3 materials or fewer, textures 1024 px or smaller, one skeleton |
-| Draw calls | 150 or fewer in a fight scene |
+| Per fighter | 15k triangles or fewer, 6 materials or fewer (VRoid's export material reduction; no custom atlas tool), textures 1024 px or smaller, one skeleton |
+| Draw calls | 150 or fewer in a fight scene (this is the governing limit; the outline pass doubles each material's draws) |
 | Lights | One directional light feeding the toon ramp; no per-pixel point lights |
 | Shadows | One directional shadow for fighters only, or a blob decal if it costs too much |
 | Build size | 40 MB gzipped or less total; first interactive in under 10 s on broadband |
