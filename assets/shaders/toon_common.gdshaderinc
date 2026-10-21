@@ -3,10 +3,10 @@
 uniform sampler2D albedo_tex : source_color, filter_linear_mipmap, repeat_disable;
 uniform vec4 base_color : source_color = vec4(1.0);
 uniform vec4 shade_color : source_color = vec4(0.82, 0.8, 0.95, 1.0);
-uniform vec3 light_toward = vec3(-0.45, 0.62, 0.64);   // direction towards the light, world space
-uniform float band_lit = 0.42;                        // ndl above this: full colour
-uniform float band_deep = -0.6;                       // ndl below this: deep shade + screentone
-uniform float deep_mul = 0.62;
+uniform vec3 light_toward = vec3(-0.35, 0.8, 0.5);   // direction towards the light, world space
+uniform float band_lit = 0.52;                        // ndl above this: full colour
+uniform float band_deep = -0.2;                       // ndl below this: deep shade + screentone
+uniform float deep_mul = 0.45;
 uniform vec4 rim_color : source_color = vec4(1.0, 0.93, 0.78, 1.0);
 uniform float rim_width = 0.42;                       // 0 disables the rim
 uniform float tone_size = 3.0;                        // screentone dot cell, in pixels

@@ -74,7 +74,7 @@ func _toonify(mi: MeshInstance3D) -> void:
 		m.set_shader_parameter("base_color", old.get_shader_parameter("_Color"))
 		# hard 2-band: one neutral cool shadow colour per material class, not the VRM pastel shade
 		var skin := "SKIN" in mat_name
-		m.set_shader_parameter("shade_color", _col("shade_skin", Color(0.56, 0.42, 0.52)) if skin else _col("shade_cloth", Color(0.36, 0.32, 0.46)))
+		m.set_shader_parameter("shade_color", _col("shade_skin", Color(0.46, 0.3, 0.42)) if skin else _col("shade_cloth", Color(0.3, 0.26, 0.42)))
 		m.set_shader_parameter("tint_k", 0.0 if (skin or is_eye or "Face" in mat_name) else 1.0)
 		var is_face := "Face_00_SKIN" in mat_name
 		m.set_shader_parameter("face_flatten", 0.85 if is_face else 0.0)
