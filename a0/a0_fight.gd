@@ -72,23 +72,8 @@ func _reset() -> void:
 	_script_t = 0
 	_cam_follow(true)
 
-func _flat(color: Color) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = color
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	return m
-
 func _build_stage() -> void:
-	var floor_mesh := MeshInstance3D.new()
-	var plane := PlaneMesh.new(); plane.size = Vector2(16, 6)
-	floor_mesh.mesh = plane
-	floor_mesh.material_override = _flat(Color("3a2a52"))
-	add_child(floor_mesh)
-	var wall := MeshInstance3D.new()
-	var q := QuadMesh.new(); q.size = Vector2(18, 7); wall.mesh = q
-	wall.position = Vector3(0, 3.0, -2.5)
-	wall.material_override = _flat(Color("2f2247"))
-	add_child(wall)
+	add_child(AirshipDeck.new())
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new(); add_child(layer)
@@ -185,7 +170,7 @@ func _cam_follow(snap: bool) -> void:
 	var mid := ((fs[0].x + fs[1].x) * 0.5 - CX) * W
 	var sep := absf(fs[1].x - fs[0].x) * W
 	var dist := clampf(10.2 + maxf(sep - 3.2, 0.0) * 0.6, 10.2, 14.0)
-	var target := Vector3(mid, 1.05, dist)
+	var target := Vector3(AirshipDeck.clamp_camera_x(mid, dist), 1.05, dist)
 	cam.position = target if snap else cam.position.lerp(target, 0.12)
 
 func _hud() -> void:
