@@ -85,12 +85,12 @@ func _apply(r: Dictionary) -> void:
 	if r.blocked:
 		o.receive_block(h, away)
 		pb = h.pb_block
-		events.append({ "type": "block", "att": f.idx, "def": o.idx, "dmg": 0, "tick": tick })
+		events.append({ "type": "block", "att": f.idx, "def": o.idx, "dmg": 0, "tick": tick, "heavy": h.heavy })
 	else:
 		var was_ko := o.ko
 		var dmg := o.receive_hit(h, away, f.stats.get("pwr", 1.0))
 		pb = h.pb_hit
-		events.append({ "type": "hit", "att": f.idx, "def": o.idx, "dmg": dmg, "tick": tick })
+		events.append({ "type": "hit", "att": f.idx, "def": o.idx, "dmg": dmg, "tick": tick, "heavy": h.heavy, "level": h.get("level", "mid") })
 		if o.ko and not was_ko: events.append({ "type": "ko", "att": f.idx, "def": o.idx, "dmg": dmg, "tick": tick })
 	f.connected = true
 	f.hitstop = o.hitstop

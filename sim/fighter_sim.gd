@@ -216,6 +216,8 @@ func _step_attack(inp: Dictionary) -> void:
 		cur = {}; chain = []; connected = false
 		set_state("idle")
 		return
+	var lg = cur.get("lunge")
+	if lg != null and st >= int(lg[0]) and st <= int(lg[1]): x += facing * float(lg[2])   # root motion: a committed step forward
 	if not connected: return
 	var s := int(cur.startup); var a := int(cur.active)
 	var crouching: bool = inp.down and not inp.up

@@ -23,6 +23,7 @@ var meshes: Array[MeshInstance3D] = []
 var lean := 0.0
 var turn := 0.0
 var ground := 0.0
+var flash_age := 0   # ticks of hit-stop shown so far: the white flash lasts the first 3
 
 ## model_id selects res://fighters/<id>/model.scn (baked by tools/bake_fighter.sh); animations are shared by humanoid bone name.
 func setup(fighter: FighterSim, model_id: String, swap: float) -> void:
@@ -41,6 +42,7 @@ func setup(fighter: FighterSim, model_id: String, swap: float) -> void:
 		if mi is MeshInstance3D:
 			meshes.append(mi)
 			mi.set_instance_shader_parameter("swap", swap)
+			mi.set_instance_shader_parameter("rim_override", Color("3fe0d0") if fighter.idx == 0 else Color("ffb23a"))
 	turn = deg_to_rad(90.0 * fighter.facing)
 
 func _len(clip: String) -> float:
@@ -49,13 +51,34 @@ func _len(clip: String) -> float:
 func _peak(clip: String) -> float:
 	return float(_meta[clip].peak_t)
 
-## [clip, time] for the fighter's current sim state.
+## [clip, time, key pose] for the fighter's current sim state; the key pose ({} for none) is layered on the clip frame (data/poses.json).
 func _pose() -> Array:
 	var f := sim
 	var a := f.anim()
 	var loop_t := floorf(clock * STEP_FPS) / STEP_FPS
+	if f.attacking() and PoseLib.has_pose(a):
+		var b := PoseLib.base(a)
+		return [b[0], b[1], PoseLib.key(a, _phase(f))]
 	if f.attacking() and MOVE_CLIPS.has(a):
-		return [MOVE_CLIPS[a], _attack_time(MOVE_CLIPS[a], f)]
+		return [MOVE_CLIPS[a], _attack_time(MOVE_CLIPS[a], f), {}]
+	if a == "win":
+		var b := PoseLib.base("win")
+		return [b[0], b[1], PoseLib.key("win", "imp" if int(clock * 2.0) % 2 == 0 else "fol")]
+	if a in ["crouch", "block_stand", "block_crouch"] and PoseLib.has_pose(a):
+		var b := PoseLib.base(a)
+		return [b[0], b[1], PoseLib.key(a, "")]
+	var r := _clip_pose(a, f, loop_t)
+	return [r[0], r[1], {}]
+
+## Which key pose of a move to show: wind-up through the startup, the held impact, then follow-through and recovery.
+func _phase(f: FighterSim) -> String:
+	var s := int(f.cur.startup); var act := int(f.cur.active); var rec := int(f.cur.recovery)
+	var hold := maxi(act, HOLD_MIN)
+	if f.st <= s: return "ant"
+	if f.st <= s + hold: return "imp"
+	return "fol" if float(f.st - s - hold) / float(maxi(rec - maxi(HOLD_MIN - act, 0), 1)) < 0.5 else "rec"
+
+func _clip_pose(a: String, f: FighterSim, loop_t: float) -> Array:
 	match a:
 		"idle", "win": return ["Punch_Jab", 0.0]    # boxing guard until Mixamo Fight Idle lands; the bob below keeps it alive
 		"walk_f": return ["Walk", fposmod(loop_t, _len("Walk"))]
@@ -70,7 +93,7 @@ func _pose() -> Array:
 			if f.state == "launched": return ["Hit_Knockback", clampf(_stepped(f.st / 60.0), 0.0, _len("Hit_Knockback") - 0.02)]
 			return ["Death01", 1.45]
 		"wakeup": return ["LayToIdle", clampf(float(f.st) / SimConst.GETUP, 0.0, 1.0) * (_len("LayToIdle") - 0.02)]
-		"ko": return ["Death01", clampf(_stepped(f.st / 60.0), 0.0, _len("Death01") - 0.02)]
+		"ko": return ["Death01", 1.45]    # the knockdown already put the body on the floor; stay lying, never replay the fall from standing
 	return ["Idle", 0.0]
 
 ## The reaction clips are short; hold the mid-clip reaction pose for the stun and let the exaggeration do the selling.
@@ -107,8 +130,10 @@ func present(dt: float, tick: int) -> void:
 		player.pause()
 	player.seek(pose[1], true)
 	player.advance(0.0)
+	var keyed: bool = not pose[2].is_empty()
+	if keyed: PoseLib.apply(skeleton, pose[2])
 	_exaggerate(skeleton, _hit_k(f), f.state == "hit" and f.hit_heavy)
-	var drop := _ground_drop(skeleton) if (f.state in ["lying", "ko", "getup"]) else 0.0
+	var drop := _ground_drop(skeleton) if (f.state in ["lying", "ko", "getup"]) else PoseLib.floor_drop(skeleton) if (keyed and not f.airborne()) else 0.0
 	ground = lerpf(ground, drop, 0.5)
 	# lean into the held impact, pull back during wind-up and block
 	var target := 0.0
@@ -123,7 +148,12 @@ func present(dt: float, tick: int) -> void:
 		shake = 0.015 * (1.0 if tick % 2 == 0 else -1.0)
 	var bob := 0.012 * sin(floorf(clock * STEP_FPS) / STEP_FPS * TAU * 1.1) if f.state == "idle" else 0.0
 	model.position = Vector3(shake, ground + bob, 0.0)
-	var flash := 1.0 if (f.hitstop > 0 and f.state == "hit") else 0.0
+	var flash := 0.0
+	if f.state in ["hit", "thrown"] and f.hitstop > 0:
+		flash_age += 1
+		flash = 1.0 if flash_age <= 3 else 0.0
+	elif not f.state in ["hit", "thrown"]:
+		flash_age = 0
 	for mi in meshes: mi.set_instance_shader_parameter("flash", flash)
 
 ## Hit reaction strength 0..1: snaps on in 2 ticks, then eases off over the stun.
