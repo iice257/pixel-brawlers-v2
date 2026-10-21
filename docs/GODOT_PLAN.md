@@ -62,6 +62,15 @@ Goal: prove one steampunk anime fighter looks right and runs fast in the browser
 5. A first steampunk dressing pass: goggles, a gauntlet or pauldron and belt/gears attached to bones (Blender or CC0 props). Not a full outfit yet.
 6. Export to the web and measure against the web budget.
 
+**A0 quality bar (all must pass; the orchestrator rejects otherwise):**
+- **Not "Mixamo in a toon shader".** Every attack has a readable anticipation pose, a held impact pose (at least 3 to 6 sim frames on the active frame) and a clear recovery. Poses are exaggerated past the source clip where needed (per-move pose offsets or keyed edits), never played back raw.
+- **Silhouette test:** a black-fill render of idle, punch, kick and hit is readable at game camera size. Fists and feet extend clearly away from the body on active frames.
+- **Shading:** no smooth gradients on skin or cloth. Two or three hard bands, a visible rim, and outline width consistent at game camera distance. No outline gaps or spikes at the hair, fingers or clothing seams.
+- **Faces:** anime face shading stays clean (no shadow blotches across the face from the toon ramp); use face-normal or a face-specific ramp if needed.
+- **Stepped motion** reads as deliberate (held keys), not as a low frame rate. Root and body position stay smooth at 60 Hz while the pose steps.
+- **Side-by-side check:** `media/qa/A0-compare.png` places our frame next to a still from each top reference (JoJo ASB, Genshin, Arcane) at the same size, with a short note on what is still missing. Reference stills are kept out of the repo (review only).
+- **Web:** the numbers in the web budget, measured on the live Pages build in Chrome, are reported alongside the gif.
+
 **Gate:** a Pages URL showing the character idle, walking and playing a punch, kick, hit and KO cycle under keyboard control, with FPS and build size reported. Owner verdict on the look. If the look or the budget fails, adjust the recipe here, not later.
 
 ### G1: Vertical slice (2 fighters, 1 stage)
