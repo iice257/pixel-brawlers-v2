@@ -40,7 +40,31 @@ func _init() -> void:
 	ps.pack(model)
 	var err := ResourceSaver.save(ps, out, ResourceSaver.FLAG_COMPRESS)
 	print("baked ", src, " -> ", out, " err=", err, " bones=", skel.get_bone_count())
+	_budget_report(skel)
 	quit()
+
+const MAX_TRIS := 15000
+const MAX_MATERIALS := 3
+var _src_max_tex := 0
+
+## Web budget check (GODOT_PLAN A0): warns loudly and writes fighters/<id>/budget.json. Over budget still bakes, so a model can be inspected.
+func _budget_report(skel: Skeleton3D) -> void:
+	var tris := 0
+	var mats := {}
+	for mi in skel.find_children("*", "MeshInstance3D", false, false):
+		for s in mi.mesh.get_surface_count():
+			tris += mi.mesh.surface_get_arrays(s)[Mesh.ARRAY_INDEX].size() / 3
+			mats[mi.get_surface_override_material(s).resource_name] = true
+	var problems := []
+	if tris > MAX_TRIS: problems.append("%d triangles (budget %d): re-export from VRoid with polygon reduction on and hair reduced" % [tris, MAX_TRIS])
+	if mats.size() > MAX_MATERIALS: problems.append("%d materials (budget %d): merge materials in VRoid (one atlas)" % [mats.size(), MAX_MATERIALS])
+	if _src_max_tex > MAX_TEX: problems.append("source textures up to %d px were downscaled to %d (use a %d px atlas in VRoid)" % [_src_max_tex, MAX_TEX, MAX_TEX])
+	var report := { "id": id, "triangles": tris, "materials": mats.size(), "source_max_texture_px": _src_max_tex, "within_budget": problems.is_empty(), "problems": problems }
+	var f := FileAccess.open("res://fighters/%s/budget.json" % id, FileAccess.WRITE)
+	f.store_string(JSON.stringify(report, "	"))
+	f.close()
+	print("baked budget id=%s tris=%d materials=%d src_tex=%d %s" % [id, tris, mats.size(), _src_max_tex, "OK" if problems.is_empty() else "OVER BUDGET"])
+	for pr in problems: print("baked WARNING: ", pr)
 
 func _own(n: Node, root: Node) -> void:
 	for c in n.get_children():
@@ -102,6 +126,7 @@ func _small(t: Texture2D, mat_name: String) -> Texture2D:
 	if _tex_cache.has(t): return _tex_cache[t]
 	var img := t.get_image()
 	if img.is_compressed(): img.decompress()
+	_src_max_tex = maxi(_src_max_tex, maxi(img.get_width(), img.get_height()))
 	if maxi(img.get_width(), img.get_height()) > MAX_TEX:
 		var k := float(MAX_TEX) / maxi(img.get_width(), img.get_height())
 		img.resize(int(img.get_width() * k), int(img.get_height() * k), Image.INTERPOLATE_LANCZOS)

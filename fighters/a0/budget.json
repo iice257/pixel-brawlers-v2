@@ -1,0 +1,11 @@
+{
+	"id": "a0",
+	"materials": 15,
+	"problems": [
+		"15 materials (budget 3): merge materials in VRoid (one atlas)",
+		"source textures up to 2048 px were downscaled to 1024 (use a 1024 px atlas in VRoid)"
+	],
+	"source_max_texture_px": 2048,
+	"triangles": 14804,
+	"within_budget": false
+}

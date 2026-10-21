@@ -195,7 +195,7 @@ func _hud() -> void:
 		if i == 1: bars[i].position.x = 1280 - 40 - 520 + 3 + 514.0 * (1.0 - pct)
 	timer_label.text = "%02d" % match_sim.seconds_left()
 	banner.text = _banner()
-	info.text = "P1 %s | P2 %s | combo %d | %d fps" % [fs[0].anim(), fs[1].anim(), fs[1].combo_hits, Engine.get_frames_per_second()]
+	info.text = "P1 %s | P2 %s | combo %d | %d fps | %s" % [fs[0].anim(), fs[1].anim(), fs[1].combo_hits, Engine.get_frames_per_second(), RenderingServer.get_current_rendering_method()]
 
 func _banner() -> String:
 	match match_sim.phase:
