@@ -8,7 +8,7 @@ These prompts are for any modern image model (Gemini / Nano Banana, GPT Image, M
 
 > STYLE: stylised anime illustration in the spirit of JoJo's Bizarre Adventure: All-Star Battle crossed with Arcane and Genshin Impact. Bold manga ink linework with varied line weight, heavy black shadow shapes, hard two-band cel shading, screentone and hatching in the deepest shadows, dramatic poses. Steampunk palette: brass #c9a14a, copper #b8643a, oxidised teal #2f7f7a, soot #14121a, cream steam #efe6d2, with one hot accent of glowing amber #ffb347. Painterly, hand-brushed backgrounds in Arcane's style. Clean Genshin-style anime faces. No watermark, no signature, no text unless asked.
 
-**Roster used in the prompts.** No elemental powers: the tech is gadgets, gauntlets, pistons and steam.
+**Roster used in the prompts** (first four = four play styles: rushdown, grappler, zoner, trickster). No elemental powers: the tech is gadgets, gauntlets, pistons and steam.
 - **KESTREL** (launch fighter 1): lean airship duellist, late 20s, short swept-back dark hair, brass goggles pushed up on the forehead, a cropped teal coat with brass buttons, piston-assisted gauntlets, a belt of small gears and pressure gauges, fast and confident.
 - **BRIGGS** (launch fighter 2): broad foundry brawler, 40s, shaved head, thick moustache, a scarred leather apron over a bare chest, one oversized hydraulic gauntlet arm with a glowing amber vent, heavy boots.
 - Later roster (concept sheets come in G4): **ODILE** (gadgeteer with a clockwork backpack), **TOBIAS** (old watchmaker martial artist), **VESPER** (masked clockwork assassin), **ROOK** (smog-district youth with a chain hook).
@@ -31,6 +31,14 @@ Aspect 21:9 (about 2560x1100). Crop the centre to 16:9 for the title hero, use t
 Aspect 16:9 (2560x1440). Two rows, one fighter each, so neither is cramped. These are modelling references for VRoid and Blender, so keep the views orthographic and consistent.
 
 > A character design reference sheet in two horizontal rows. TOP ROW: KESTREL in a neutral standing pose, shown in front view, side view and back view at the same scale, plus a close-up of the face and a small panel of the goggles, gauntlet and belt details. BOTTOM ROW: BRIGGS, the same layout. Plain light grey background, even lighting, flat colour with thin ink lines, a labelled colour swatch strip under each row (no text other than swatch hex codes is needed). Keep proportions consistent between views. [KESTREL and BRIGGS descriptions] STYLE: [style block]
+
+## Image 3b: Concept sheets for fighters 3 and 4 (2 items: ODILE sheet, ROOK sheet)
+Added 2026-10-21 so the first four cover four play styles: KESTREL (fast rushdown), BRIGGS (heavy grappler), ODILE (keep-away zoner), ROOK (mid-range trickster). Same layout as Image 3.
+
+- **ODILE**: a petite inventor in her early 20s, a messy copper-red bob under a leather aviator cap with monocle-goggles, a brass clockwork backpack with two folding mechanical arms, a long patched lab coat over a corset vest, striped stockings and heavy work boots, ink-stained gloves. Fights at range with gadgets: steam-cannon shots and spring-loaded arms.
+- **ROOK**: a wiry smog-district youth in his late teens, a black undercut with a long fringe, a soot-smudged face scarf pulled down, a torn high-collar coat with brass buckles, fingerless gloves, and a chain-and-hook wrapped around one forearm. Lean and low to the ground, a trickster who controls mid range with the chain.
+
+> A character design reference sheet in two horizontal rows. TOP ROW: ODILE in a neutral standing pose, shown in front view, side view and back view at the same scale, plus a close-up of the face and a small panel of the backpack arms, goggles and gloves. BOTTOM ROW: ROOK, the same layout, with a detail panel of the chain-hook and buckles. Plain light grey background, even lighting, flat colour with thin ink lines, a colour swatch strip under each row. Keep proportions consistent between views and with a standard anime adult body (about 7 heads tall). [ODILE and ROOK descriptions] STYLE: [style block]
 
 ## Image 4: Character-select portraits (2 items: KESTREL, BRIGGS)
 Aspect 16:9 (2560x1440), two large cells side by side so each portrait gets full detail. Target 512x512 per portrait after a square crop. The other four portraits are generated in G4.
@@ -60,10 +68,11 @@ Aspect 16:9 (3840x2160). Both items sit on one flat sheet in two clearly separat
 | 1 Logo | 1 |
 | 2 Key art, banner, menu background | 3 |
 | 3 Concept sheets (KESTREL, BRIGGS) | 2 |
+| 3b Concept sheets (ODILE, ROOK), added | 2 |
 | 4 Portraits (KESTREL, BRIGGS) | 2 |
 | 5 Airship deck backdrop | 1 |
 | 6 HUD kit | 4 |
 | 7 Onomatopoeia and effect sheet | 2 |
-| **Total** | **15** |
+| **Total** | **17** |
 
 Deferred to later phases (not in the 15): the clocktower stage backdrop, four more portraits and concept sheets for the later roster (G4), and a loading screen made from a crop of Image 2 or 5.
