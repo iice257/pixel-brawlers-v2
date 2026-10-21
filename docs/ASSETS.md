@@ -79,4 +79,4 @@ Drop-ins work because every fighter animation is addressed by contract names (ne
 ## 5. Register
 | Asset | Source URL | Licence | Credit line | Files | Added |
 |---|---|---|---|---|---|
-| (filled by the builder on import) | | | | | |
+| Kenney Pirate Kit 2.1 (props: ship parts, platforms, masts, flags, crates, barrels, cannons, rocks) | https://kenney.nl/assets/pirate-kit | CC0 1.0 (confirmed on the kit page and in its License.txt) | Kenney (www.kenney.nl), optional | `assets/src/kenney-pirate-kit/` (source only, gitignored, GLB under `pkg/Models/GLB format`) | 2026-10-21 |
