@@ -6,6 +6,7 @@ This is for a fresh planner/orchestrator session that picks up Pixel Brawlers v2
 - **The planner/orchestrator (you)** plans, reviews gate evidence and gives rulings. It writes no product code.
 - **The builder** is the Claude session titled "Pixel Brawlers: Building" (id `local_fbf3fd20-14e2-44d5-b125-0b96fa92832b`). Message it directly with SendMessage. Never ask the owner to relay. (On 2026-10-19 the titles were briefly swapped by mistake; this is the corrected state.)
 - The owner reviews at each gate and makes product calls. Owner preferences are in `~/.claude/CLAUDE.md`: be brief, act first, no lectures, ask only when blocked.
+- **Status updates (owner, 2026-10-21):** the planner tells the owner, briefly and unasked, whenever a session is blocked, finishes a task or gate, or sends something back for review. If the owner may be away, use a push notification.
 
 ## Where things are
 - v2 repo: `C:\Users\0\Documents\Projects\Github\pixel-brawlers-v2` (https://github.com/iice257/pixel-brawlers-v2). Godot 4.7.2, GDScript, CI runs the GUT tests, and Pages hosts the web build.
