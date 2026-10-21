@@ -28,6 +28,7 @@ common/max_physics_steps_per_frame=4
 
 textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
+anti_aliasing/quality/msaa_3d=2
 renderer/rendering_method.mobile="gl_compatibility"
 2d/snap/snap_2d_transforms_to_pixel=true
 2d/snap/snap_2d_vertices_to_pixel=true

@@ -4,11 +4,11 @@ uniform sampler2D albedo_tex : source_color, filter_linear_mipmap, repeat_disabl
 uniform vec4 base_color : source_color = vec4(1.0);
 uniform vec4 shade_color : source_color = vec4(0.82, 0.8, 0.95, 1.0);
 uniform vec3 light_toward = vec3(-0.35, 0.8, 0.5);   // direction towards the light, world space
-uniform float band_lit = 0.52;                        // ndl above this: full colour
+uniform float band_lit = 0.6;                         // ndl above this: full colour
 uniform float band_deep = -0.2;                       // ndl below this: deep shade + screentone
 uniform float deep_mul = 0.45;
 uniform vec4 rim_color : source_color = vec4(1.0, 0.93, 0.78, 1.0);
-uniform float rim_width = 0.42;                       // 0 disables the rim
+uniform float rim_width = 0.2;                        // 0 disables the rim
 uniform float tone_size = 3.0;                        // screentone dot cell, in pixels
 uniform float face_flatten = 0.0;                     // 1 for face skin: pushes the normal towards the face direction
 uniform vec3 face_forward = vec3(0.0, 0.0, 1.0);      // world-space face direction, set per fighter facing
@@ -36,7 +36,7 @@ vec3 toon_color(vec2 uv, vec3 view_n, vec3 view_dir, vec2 frag, out float alpha)
 	float dots = step(length(cell), 0.32);
 	col *= 1.0 - deep_k * dots * 0.22;
 	float rim = 1.0 - clamp(dot(normalize(view_n), normalize(view_dir)), 0.0, 1.0);
-	float rim_k = step(1.0 - rim_width, rim) * step(0.001, rim_width) * (0.55 + 0.45 * lit_k);
+	float rim_k = step(1.0 - rim_width, rim) * step(0.001, rim_width) * lit_k;   // thin, lit side only: no fringe on the shadow side
 	col = mix(col, rim_color.rgb * mix(vec3(1.0), tex.rgb, 0.35), rim_k * 0.9);
 	col = mix(col, col.brg, swap * tint_k);
 	col *= mix(vec3(1.0), tint.rgb, tint_k);

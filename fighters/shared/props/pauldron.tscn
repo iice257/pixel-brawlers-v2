@@ -76,14 +76,14 @@ outer_radius = 0.085
 rings = 20
 ring_segments = 8
 
-[node name="Pauldron" type="Node3D" unique_id=97094725]
+[node name="Pauldron" type="Node3D" unique_id=920593981]
 
-[node name="@MeshInstance3D@21" type="MeshInstance3D" parent="." unique_id=392574781]
+[node name="@MeshInstance3D@21" type="MeshInstance3D" parent="." unique_id=1882215475]
 transform = Transform3D(1, 0, 0, 0, 0.7, 0, 0, 0, 1, 0, 0, 0)
 material_override = SubResource("ShaderMaterial_epsq7")
 mesh = SubResource("SphereMesh_35wva")
 
-[node name="@MeshInstance3D@22" type="MeshInstance3D" parent="." unique_id=128850391]
+[node name="@MeshInstance3D@22" type="MeshInstance3D" parent="." unique_id=259498149]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.02, 0)
 material_override = SubResource("ShaderMaterial_eyxx7")
 mesh = SubResource("TorusMesh_sd8gq")

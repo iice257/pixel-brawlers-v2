@@ -67,11 +67,10 @@ func _own(n: Node, r: Node) -> void:
 func _init() -> void:
 	# goggles: pushed up on the forehead; strap round the head, two brass-rimmed lenses
 	var gg := Node3D.new(); gg.name = "Goggles"
-	_add(gg, _torus(0.036, 0.052), BRASS, Vector3(-0.05, 0, 0.0), Vector3(90, 0, 0))
-	_add(gg, _torus(0.036, 0.052), BRASS, Vector3(0.05, 0, 0.0), Vector3(90, 0, 0))
-	_add(gg, _cyl(0.037, 0.012), GLASS, Vector3(-0.05, 0, 0.0), Vector3(90, 0, 0))
-	_add(gg, _cyl(0.037, 0.012), GLASS, Vector3(0.05, 0, 0.0), Vector3(90, 0, 0))
-	_add(gg, _torus(0.088, 0.1), LEATHER, Vector3(0, 0, -0.085), Vector3(0, 0, 0), Vector3(1.0, 1.0, 1.0))
+	for sx in [-0.05, 0.05]:
+		_add(gg, _cyl(0.05, 0.05), BRASS, Vector3(sx, 0, 0.0), Vector3(90, 0, 0))               # chunky lens housing: reads in side silhouette
+		_add(gg, _cyl(0.037, 0.012), GLASS, Vector3(sx, 0, 0.027), Vector3(90, 0, 0))
+	_add(gg, _torus(0.084, 0.104), LEATHER, Vector3(0, 0, -0.085), Vector3(0, 0, 0), Vector3(1.0, 1.0, 1.0))
 	_save(gg, "goggles")
 	# gauntlet: brass cuff with a dark band and a small gear, forearm axis = +X (mirrored for the other side by scale.x = -1)
 	var ga := Node3D.new(); ga.name = "Gauntlet"

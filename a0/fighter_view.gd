@@ -135,7 +135,7 @@ func _hit_k(f: FighterSim) -> float:
 
 const BODY_BONES := ["UpperArm", "LowerArm", "Hand", "UpperLeg", "LowerLeg", "Foot", "Toes"]   # skeleton also has helper bones at the origin
 const SNAP_BONES := { "Spine": 0.1, "Chest": 0.15, "UpperChest": 0.15, "Neck": 0.25, "Head": 0.35 }
-const FLAIL_BONES := { "LeftUpperArm": 1.0, "RightUpperArm": 1.0, "LeftLowerArm": 0.6, "RightLowerArm": 0.6 }
+const FLAIL_BONES := { "LeftUpperArm": 2.2, "RightUpperArm": 2.2, "LeftLowerArm": 0.9, "RightLowerArm": 0.9 }
 
 ## Head and torso snap back, arms fling out. Rotation is applied in skeleton space about the side-view axis (X).
 static func _exaggerate(skel: Skeleton3D, k: float, heavy: bool) -> void:
