@@ -1,0 +1,89 @@
+[gd_scene format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/toon_outline.gdshader" id="1_6pweq"]
+[ext_resource type="Texture2D" path="res://assets/shaders/white.png" id="2_7mgk0"]
+[ext_resource type="Shader" path="res://assets/shaders/toon.gdshader" id="3_qnteg"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_opb22"]
+render_priority = 0
+shader = ExtResource("1_6pweq")
+shader_parameter/albedo_tex = ExtResource("2_7mgk0")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_epsq7"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_opb22")
+shader = ExtResource("3_qnteg")
+shader_parameter/albedo_tex = ExtResource("2_7mgk0")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/shade_color = Color(0.387, 0.24000001, 0.132, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_35wva"]
+radius = 0.075
+height = 0.15
+radial_segments = 16
+rings = 8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_tylu2"]
+render_priority = 0
+shader = ExtResource("1_6pweq")
+shader_parameter/albedo_tex = ExtResource("2_7mgk0")
+shader_parameter/base_color = Color(0.16, 0.14, 0.17, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_eyxx7"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_tylu2")
+shader = ExtResource("3_qnteg")
+shader_parameter/albedo_tex = ExtResource("2_7mgk0")
+shader_parameter/base_color = Color(0.16, 0.14, 0.17, 1)
+shader_parameter/shade_color = Color(0.072, 0.056, 0.0935, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="TorusMesh" id="TorusMesh_sd8gq"]
+inner_radius = 0.07
+outer_radius = 0.085
+rings = 20
+ring_segments = 8
+
+[node name="Pauldron" type="Node3D" unique_id=97094725]
+
+[node name="@MeshInstance3D@21" type="MeshInstance3D" parent="." unique_id=392574781]
+transform = Transform3D(1, 0, 0, 0, 0.7, 0, 0, 0, 1, 0, 0, 0)
+material_override = SubResource("ShaderMaterial_epsq7")
+mesh = SubResource("SphereMesh_35wva")
+
+[node name="@MeshInstance3D@22" type="MeshInstance3D" parent="." unique_id=128850391]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.02, 0)
+material_override = SubResource("ShaderMaterial_eyxx7")
+mesh = SubResource("TorusMesh_sd8gq")

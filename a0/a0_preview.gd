@@ -29,6 +29,7 @@ func _ready() -> void:
 	model = (load("res://fighters/%s/model.scn" % mid) as PackedScene).instantiate()
 	model.rotation.y = deg_to_rad(90.0 * face)
 	add_child(model)
+	FighterView.dress(model.get_node("Skeleton3D"), mid)
 	var ap := AnimationPlayer.new()
 	model.add_child(ap)
 	ap.root_node = ap.get_path_to(model)

@@ -36,6 +36,7 @@ func setup(fighter: FighterSim, model_id: String, swap: float) -> void:
 	player.add_animation_library("", load("res://fighters/shared/anims.res"))
 	if _meta.is_empty():
 		_meta = JSON.parse_string(FileAccess.get_file_as_string("res://fighters/shared/clip_meta.json"))
+	dress(skeleton, model_id)
 	for mi in skeleton.get_children():
 		if mi is MeshInstance3D:
 			meshes.append(mi)
@@ -161,3 +162,22 @@ static func _ground_drop(skel: Skeleton3D) -> float:
 		var b := skel.find_bone(n)
 		if b >= 0: low = minf(low, skel.get_bone_global_pose(b).origin.y)
 	return -(low - 0.07)
+
+## Attaches the accessories listed in fighters/<id>/look.json ("accessories": prop scene, humanoid bone, offset) to the skeleton.
+static func dress(skel: Skeleton3D, model_id: String) -> void:
+	var path := "res://fighters/%s/look.json" % model_id
+	if not FileAccess.file_exists(path): return
+	var look: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
+	for acc in look.get("accessories", []):
+		var b := skel.find_bone(acc.bone)
+		if b < 0: continue
+		var att := BoneAttachment3D.new()
+		att.bone_name = acc.bone
+		skel.add_child(att)
+		var prop: Node3D = (load("res://fighters/shared/props/%s.tscn" % acc.prop) as PackedScene).instantiate()
+		var p: Array = acc.get("pos", [0, 0, 0]); var r: Array = acc.get("rot", [0, 0, 0]); var sc: Array = acc.get("scale", [1, 1, 1])
+		# offsets are authored in T-pose model space; convert through the bone's rest frame so any rig orientation works
+		var rb := skel.get_bone_global_rest(b).basis.orthonormalized()
+		prop.position = rb.inverse() * Vector3(p[0], p[1], p[2])
+		prop.basis = rb.inverse() * Basis.from_euler(Vector3(deg_to_rad(r[0]), deg_to_rad(r[1]), deg_to_rad(r[2]))) * Basis.from_scale(Vector3(sc[0], sc[1], sc[2]))
+		att.add_child(prop)

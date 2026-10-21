@@ -1,0 +1,551 @@
+[gd_scene format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/toon_outline.gdshader" id="1_6uare"]
+[ext_resource type="Texture2D" path="res://assets/shaders/white.png" id="2_bx1by"]
+[ext_resource type="Shader" path="res://assets/shaders/toon.gdshader" id="3_g53mg"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bf7sy"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.3, 0.17, 0.12, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jvn26"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_bf7sy")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.3, 0.17, 0.12, 1)
+shader_parameter/shade_color = Color(0.135, 0.068, 0.066, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="TorusMesh" id="TorusMesh_2gbw7"]
+inner_radius = 0.145
+outer_radius = 0.17
+rings = 20
+ring_segments = 8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_gmohl"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2nqx6"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_gmohl")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/shade_color = Color(0.387, 0.24000001, 0.132, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_jan12"]
+top_radius = 0.045
+bottom_radius = 0.045
+height = 0.02
+radial_segments = 20
+rings = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fsu7r"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.16, 0.14, 0.17, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_d55k5"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_fsu7r")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.16, 0.14, 0.17, 1)
+shader_parameter/shade_color = Color(0.072, 0.056, 0.0935, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_73fow"]
+top_radius = 0.01575
+bottom_radius = 0.01575
+height = 0.032
+radial_segments = 12
+rings = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_576o4"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x4jrw"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_576o4")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/shade_color = Color(0.387, 0.24000001, 0.132, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_nxwgh"]
+size = Vector3(0.0171, 0.02, 0.0153)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pngov"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2vcsw"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_pngov")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/shade_color = Color(0.387, 0.24000001, 0.132, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_bltpr"]
+size = Vector3(0.0171, 0.02, 0.0153)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fyj8h"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ufxkj"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_fyj8h")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/shade_color = Color(0.387, 0.24000001, 0.132, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_ru68x"]
+size = Vector3(0.0171, 0.02, 0.0153)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fv8ge"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_o5un4"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_fv8ge")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/shade_color = Color(0.387, 0.24000001, 0.132, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_yod0i"]
+size = Vector3(0.0171, 0.02, 0.0153)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sb1ih"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4kt3r"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_sb1ih")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/shade_color = Color(0.387, 0.24000001, 0.132, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_nl6xc"]
+size = Vector3(0.0171, 0.02, 0.0153)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_h0ku7"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_uars3"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_h0ku7")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/shade_color = Color(0.387, 0.24000001, 0.132, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_78ilt"]
+size = Vector3(0.0171, 0.02, 0.0153)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vsu2i"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jwt2u"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_vsu2i")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/shade_color = Color(0.387, 0.24000001, 0.132, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_4e7mu"]
+size = Vector3(0.0171, 0.02, 0.0153)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_xyese"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fc21g"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_xyese")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/shade_color = Color(0.387, 0.24000001, 0.132, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_x6ren"]
+size = Vector3(0.0171, 0.02, 0.0153)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vy28r"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_w5nps"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_vy28r")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/shade_color = Color(0.387, 0.24000001, 0.132, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_4m8mj"]
+size = Vector3(0.0171, 0.02, 0.0153)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_n6yfq"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ly2vv"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_n6yfq")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.86, 0.6, 0.24, 1)
+shader_parameter/shade_color = Color(0.387, 0.24000001, 0.132, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_hiocj"]
+size = Vector3(0.0171, 0.02, 0.0153)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wx2kl"]
+render_priority = 0
+shader = ExtResource("1_6uare")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.3, 0.17, 0.12, 1)
+shader_parameter/line_color = null
+shader_parameter/line_mix = null
+shader_parameter/width = 0.012
+shader_parameter/alpha_cut = null
+shader_parameter/use_cut = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jr7r3"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_wx2kl")
+shader = ExtResource("3_g53mg")
+shader_parameter/albedo_tex = ExtResource("2_bx1by")
+shader_parameter/base_color = Color(0.3, 0.17, 0.12, 1)
+shader_parameter/shade_color = Color(0.135, 0.068, 0.066, 1)
+shader_parameter/light_toward = null
+shader_parameter/band_lit = null
+shader_parameter/band_deep = null
+shader_parameter/deep_mul = null
+shader_parameter/rim_color = null
+shader_parameter/rim_width = null
+shader_parameter/tone_size = null
+shader_parameter/face_flatten = null
+shader_parameter/face_forward = null
+shader_parameter/alpha_cut = null
+shader_parameter/tint_k = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_hgaen"]
+size = Vector3(0.05, 0.06, 0.04)
+
+[node name="Belt" type="Node3D" unique_id=1056117457]
+
+[node name="@MeshInstance3D@23" type="MeshInstance3D" parent="." unique_id=217404924]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.85, 0, 0, 0)
+material_override = SubResource("ShaderMaterial_jvn26")
+mesh = SubResource("TorusMesh_2gbw7")
+
+[node name="@Node3D@24" type="Node3D" parent="." unique_id=169176233]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0.147)
+
+[node name="@MeshInstance3D@25" type="MeshInstance3D" parent="@Node3D@24" unique_id=330286118]
+material_override = SubResource("ShaderMaterial_2nqx6")
+mesh = SubResource("CylinderMesh_jan12")
+
+[node name="@MeshInstance3D@26" type="MeshInstance3D" parent="@Node3D@24" unique_id=716834185]
+material_override = SubResource("ShaderMaterial_d55k5")
+mesh = SubResource("CylinderMesh_73fow")
+
+[node name="@MeshInstance3D@27" type="MeshInstance3D" parent="@Node3D@24" unique_id=689085413]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.045900002, 0, 0)
+material_override = SubResource("ShaderMaterial_x4jrw")
+mesh = SubResource("BoxMesh_nxwgh")
+
+[node name="@MeshInstance3D@28" type="MeshInstance3D" parent="@Node3D@24" unique_id=854255489]
+transform = Transform3D(0.809017, 0, -0.58778524, 0, 1, 0, 0.58778524, 0, 0.809017, 0.037133884, 0, 0.026979344)
+material_override = SubResource("ShaderMaterial_2vcsw")
+mesh = SubResource("BoxMesh_bltpr")
+
+[node name="@MeshInstance3D@29" type="MeshInstance3D" parent="@Node3D@24" unique_id=1848878052]
+transform = Transform3D(0.30901697, 0, -0.95105654, 0, 1, 0, 0.95105654, 0, 0.30901697, 0.014183881, 0, 0.043653496)
+material_override = SubResource("ShaderMaterial_ufxkj")
+mesh = SubResource("BoxMesh_ru68x")
+
+[node name="@MeshInstance3D@30" type="MeshInstance3D" parent="@Node3D@24" unique_id=1826581639]
+transform = Transform3D(-0.30901694, 0, -0.95105654, 0, 1, 0, 0.95105654, 0, -0.30901694, -0.014183881, 0, 0.043653496)
+material_override = SubResource("ShaderMaterial_o5un4")
+mesh = SubResource("BoxMesh_yod0i")
+
+[node name="@MeshInstance3D@31" type="MeshInstance3D" parent="@Node3D@24" unique_id=785890416]
+transform = Transform3D(-0.80901706, 0, -0.5877852, 0, 1, 0, 0.5877852, 0, -0.80901706, -0.037133884, 0, 0.026979344)
+material_override = SubResource("ShaderMaterial_4kt3r")
+mesh = SubResource("BoxMesh_nl6xc")
+
+[node name="@MeshInstance3D@32" type="MeshInstance3D" parent="@Node3D@24" unique_id=2068963905]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, -0.045900002, 0, 5.6209433e-18)
+material_override = SubResource("ShaderMaterial_uars3")
+mesh = SubResource("BoxMesh_78ilt")
+
+[node name="@MeshInstance3D@33" type="MeshInstance3D" parent="@Node3D@24" unique_id=1022612230]
+transform = Transform3D(-0.80901706, 0, 0.5877851, 0, 1, 0, -0.5877851, 0, -0.80901706, -0.037133884, 0, -0.026979344)
+material_override = SubResource("ShaderMaterial_jwt2u")
+mesh = SubResource("BoxMesh_4e7mu")
+
+[node name="@MeshInstance3D@34" type="MeshInstance3D" parent="@Node3D@24" unique_id=633868091]
+transform = Transform3D(-0.3090171, 0, 0.9510565, 0, 1, 0, -0.9510565, 0, -0.3090171, -0.014183881, 0, -0.043653496)
+material_override = SubResource("ShaderMaterial_fc21g")
+mesh = SubResource("BoxMesh_x6ren")
+
+[node name="@MeshInstance3D@35" type="MeshInstance3D" parent="@Node3D@24" unique_id=2003829744]
+transform = Transform3D(0.30901712, 0, 0.9510565, 0, 1, 0, -0.9510565, 0, 0.30901712, 0.014183881, 0, -0.043653496)
+material_override = SubResource("ShaderMaterial_w5nps")
+mesh = SubResource("BoxMesh_4m8mj")
+
+[node name="@MeshInstance3D@36" type="MeshInstance3D" parent="@Node3D@24" unique_id=188471981]
+transform = Transform3D(0.80901694, 0, 0.5877853, 0, 1, 0, -0.5877853, 0, 0.80901694, 0.037133884, 0, -0.026979344)
+material_override = SubResource("ShaderMaterial_ly2vv")
+mesh = SubResource("BoxMesh_hiocj")
+
+[node name="@MeshInstance3D@37" type="MeshInstance3D" parent="." unique_id=183422062]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16, -0.01, 0.02)
+material_override = SubResource("ShaderMaterial_jr7r3")
+mesh = SubResource("BoxMesh_hgaen")

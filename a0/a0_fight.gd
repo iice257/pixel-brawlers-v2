@@ -15,6 +15,9 @@ var timer_label: Label
 var hint: Label
 var bars: Array[ColorRect] = []
 var model_ids := ["a0", "a0"]
+var seq_dir := ""
+var seq_every := 3
+var seq_from := 0
 var shot := ""
 var shot_ticks := 0
 var script_mode := false
@@ -32,6 +35,9 @@ func _ready() -> void:
 		if a.begins_with("--shot="): shot = a.trim_prefix("--shot=")
 		elif a.begins_with("--ticks="): shot_ticks = int(a.trim_prefix("--ticks="))
 		elif a == "--script": script_mode = true
+		elif a.begins_with("--seq="): seq_dir = a.trim_prefix("--seq=")
+		elif a.begins_with("--every="): seq_every = int(a.trim_prefix("--every="))
+		elif a.begins_with("--from="): seq_from = int(a.trim_prefix("--from="))
 		elif a.begins_with("--p1="): model_ids[0] = a.trim_prefix("--p1=")
 		elif a.begins_with("--p2="): model_ids[1] = a.trim_prefix("--p2=")
 	var env := Environment.new()
@@ -143,6 +149,20 @@ func _tick(dt: float, inputs: Array) -> void:
 
 func _physics_process(dt: float) -> void:
 	if _done: return
+	if seq_dir != "":
+		_done = true
+		DirAccess.make_dir_recursive_absolute(seq_dir)
+		var n := 0
+		for i in shot_ticks:
+			_tick(1.0 / 60.0, _scripted())
+			if i >= seq_from and (i - seq_from) % seq_every == 0:
+				_cam_follow(true)
+				_hud()
+				await RenderingServer.frame_post_draw
+				get_viewport().get_texture().get_image().save_png("%s/f%03d.png" % [seq_dir, n])
+				n += 1
+		get_tree().quit()
+		return
 	if shot != "":
 		_done = true
 		for i in shot_ticks: _tick(1.0 / 60.0, _scripted())
