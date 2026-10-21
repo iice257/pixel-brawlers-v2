@@ -65,7 +65,7 @@ func _pose() -> Array:
 		"block_crouch": return ["Crouch_Idle", 0.2]
 		"jump_up", "jump_f", "jump_b": return ["Jump", clampf(f.st / 60.0, 0.0, _len("Jump") - 0.05)]
 		"hit_light": return ["Hit_Chest", _hit_time("Hit_Chest")]
-		"hit_heavy": return ["Hit_Head", _hit_time("Hit_Head")]
+		"hit_heavy": return ["Hit_Chest", _hit_time("Hit_Chest")]   # Hit_Head raises the arms forward; the arm fling in _exaggerate does the selling
 		"knockdown":
 			if f.state == "launched": return ["Hit_Knockback", clampf(_stepped(f.st / 60.0), 0.0, _len("Hit_Knockback") - 0.02)]
 			return ["Death01", 1.45]
