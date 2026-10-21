@@ -1,0 +1,54 @@
+name: Windows build to Releases
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.7.2
+
+jobs:
+  windows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache Godot + export templates
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}
+      - name: Install Godot + export templates
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          cd ~/godot
+          wget -q https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
+          wget -q https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz
+          unzip -q Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip && mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 godot
+          unzip -q Godot_v${GODOT_VERSION}-stable_export_templates.tpz
+          mv templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+          rm -rf templates *.zip *.tpz
+      - name: Import
+        run: ~/godot/godot --headless --path . --import
+      - name: Export Windows (Forward+, single exe)
+        run: |
+          mkdir -p build/windows
+          ~/godot/godot --headless --path . --export-release "Windows Desktop" build/windows/PixelBrawlers.exe
+          cd build/windows && zip -q ../PixelBrawlers-windows.zip PixelBrawlers.exe
+      - name: Publish to the "latest" release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --cleanup-tag --yes || true
+          gh release create latest build/PixelBrawlers-windows.zip --title "Pixel Brawlers (latest main, Windows)" --notes "Automatic Windows build of ${GITHUB_SHA::10}. Unzip and run PixelBrawlers.exe. Controls: WASD move, U/I/J/K attacks, Space block, O throw, F1 help." --prerelease

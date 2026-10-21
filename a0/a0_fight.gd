@@ -33,6 +33,8 @@ var sparks: Array = []        # [node, age, life, size]
 var spark_mesh: ArrayMesh
 var rematch: Button
 var ko_k := 0.0               # 0..1 how far into the KO slow-mo (palette shift, zoom)
+var banner_pivot: Node2D
+var help_on := false
 var p2_hp := 0                # --p2hp=N starts P2 with N hit points (demo recording)
 
 func _ready() -> void:
@@ -55,6 +57,8 @@ func _ready() -> void:
 	env.background_color = Color("2a1d3e")
 	var we := WorldEnvironment.new(); we.environment = env; add_child(we)
 	env.adjustment_enabled = true
+	if RenderingServer.get_current_rendering_method() != "gl_compatibility":   # desktop (Forward+): glow on the brass and sparks, SMAA from project settings
+		env.glow_enabled = true; env.glow_intensity = 0.5; env.glow_bloom = 0.04; env.glow_hdr_threshold = 1.0
 	_build_stage()
 	spark_mesh = _star_mesh()
 	sfx = Sfx.Pool.new(); add_child(sfx)
@@ -107,11 +111,14 @@ func _build_hud() -> void:
 		root.add_child(bar); bars.append(bar)
 	timer_label = _label(root, Vector2(600, 20), "HudTimer")
 	timer_label.size = Vector2(80, 50); timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	banner = _label(root, Vector2(0, 130), "HudBanner")
-	banner.size = Vector2(1280, 100); banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	banner_pivot = Node2D.new(); banner_pivot.position = Vector2(640, 190); banner_pivot.skew = -0.16
+	root.add_child(banner_pivot)
+	banner = _label(banner_pivot, Vector2(-640, -60), "HudBanner")
+	banner.size = Vector2(1280, 120); banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info = _label(root, Vector2(40, 64), "HudInfo")
 	hint = _label(root, Vector2(40, 690), "HudHint")
-	hint.text = "P1 %s | F2 boxes | R restart" % Controls.describe("p1")
+	hint.text = "P1 %s | F1 help | F2 boxes | F3 debug | R restart" % Controls.describe("p1")
+	hint.visible = false; info.visible = false
 	rematch = Button.new(); rematch.text = "REMATCH  (R / Enter)"
 	rematch.position = Vector2(500, 420); rematch.size = Vector2(280, 64)
 	rematch.pressed.connect(_reset); rematch.hide()
@@ -126,6 +133,8 @@ func _label(parent: Node, pos: Vector2, variation: String) -> Label:
 func _unhandled_input(e: InputEvent) -> void:
 	if e is InputEventKey and e.pressed and not e.echo:
 		if e.physical_keycode == KEY_F2: show_boxes = not show_boxes
+		elif e.physical_keycode == KEY_F3: info.visible = not info.visible
+		elif e.physical_keycode == KEY_F1 or e.physical_keycode == KEY_ESCAPE: help_on = not help_on; hint.visible = help_on
 		elif e.physical_keycode == KEY_R: _reset()
 		elif e.physical_keycode == KEY_ENTER and match_sim.phase == "over": _reset()
 
@@ -173,7 +182,7 @@ func _tick(dt: float, inputs: Array) -> void:
 			"hit":
 				shake = maxf(shake, clampf(0.02 + float(e.dmg) * 0.0007, 0.02, 0.09) * 0.5)   # half amplitude; the killing blow gets the full "ko" kick
 				if e.heavy: nudge = dir * 0.2
-				_spark(d, dir, 0.5 if e.heavy else 0.3, Color("fff3c0") if e.heavy else Color("ffd35a"), e.get("level", "mid"))
+				_spark(d, dir, 0.55 if e.heavy else 0.36, Color("fff3c0") if e.heavy else Color("ffd35a"), e.get("level", "mid"))
 				sfx.play("hit_h" if e.heavy else "hit_l")
 			"throw":
 				shake = maxf(shake, 0.07); nudge = dir * 0.25
@@ -248,10 +257,9 @@ func _hud() -> void:
 		bars[i].theme_type_variation = "" if pct > 0.3 else "HealthLow"
 	timer_label.text = "%02d" % match_sim.seconds_left()
 	banner.text = _banner()
-	banner.pivot_offset = Vector2(640, 50)
 	var pop := 1.0
-	if match_sim.phase in ["ko", "timeup", "call"] and match_sim.pt < 14: pop = 1.0 + 0.6 * (1.0 - match_sim.pt / 14.0)
-	banner.scale = Vector2(pop, pop)
+	if match_sim.phase in ["ko", "timeup", "call", "fight", "over"] and match_sim.pt < 4: pop = 1.0 + 1.1 * (1.0 - match_sim.pt / 4.0)   # 4-frame punch-in
+	banner_pivot.scale = Vector2(pop, pop)
 	rematch.visible = match_sim.phase == "over"
 	info.text = "P1 %s | P2 %s | combo %d | %d fps | %s | %d draws" % [fs[0].anim(), fs[1].anim(), fs[1].combo_hits, Engine.get_frames_per_second(), RenderingServer.get_current_rendering_method(), RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)]
 
@@ -291,6 +299,7 @@ func _spark(d: FighterSim, dir: float, size: float, color: Color, level: String)
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	m.vertex_color_use_as_albedo = true
 	m.albedo_color = color; m.no_depth_test = true
 	n.material_override = m
@@ -298,7 +307,7 @@ func _spark(d: FighterSim, dir: float, size: float, color: Color, level: String)
 	n.position = Vector3((d.x - CX) * W - dir * 0.18, y, 0.6)
 	n.rotation.z = randf() * TAU
 	add_child(n)
-	sparks.append([n, 0.0, 0.16, size])
+	sparks.append([n, 0.0, 0.22, size])
 
 func _sparks(dt: float) -> void:
 	for i in range(sparks.size() - 1, -1, -1):

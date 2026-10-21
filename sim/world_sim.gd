@@ -167,3 +167,17 @@ func _clamp() -> void:
 
 func snapshot() -> Dictionary:
 	return { "tick": tick, "f": fighters.map(func(f: FighterSim) -> Dictionary: return f.snapshot()) }
+
+## Full state for rollback netcode: restore(save()) then replaying the same inputs reproduces the same ticks.
+func save() -> Dictionary:
+	return { "tick": tick, "rng_seed": rng.seed, "rng_state": rng.state, "f": fighters.map(func(f: FighterSim) -> Dictionary: return f.save()) }
+
+func restore(s: Dictionary) -> void:
+	tick = s.tick
+	rng.seed = s.rng_seed; rng.state = s.rng_state
+	for i in fighters.size(): fighters[i].restore(s.f[i])
+	events.clear()
+
+## Per-tick checksum of everything in save(); two peers that agree on it are in sync.
+func checksum() -> int:
+	return hash(var_to_str(save()))

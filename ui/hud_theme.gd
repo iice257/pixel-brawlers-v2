@@ -29,6 +29,8 @@ static func build() -> Theme:
 		t.add_type(v[0]); t.set_type_variation(v[0], "Label")
 		t.set_font_size("font_size", v[0], v[1])
 		t.set_color("font_color", v[0], v[2])
+	t.set_color("font_outline_color", "HudBanner", INK); t.set_constant("outline_size", "HudBanner", 14)
+	t.set_font_size("font_size", "HudBanner", 120)
 	var btn := _box(GOLD, 3)
 	btn.set_corner_radius_all(2); btn.set_content_margin_all(14)
 	t.set_stylebox("normal", "Button", btn)

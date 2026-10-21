@@ -380,3 +380,21 @@ func snapshot() -> Dictionary:
 	return { "x": x, "y": y, "vx": vx, "vy": vy, "kb": kb, "facing": facing, "state": state, "st": st, "jump_dir": jump_dir,
 		"hp": hp, "hitstop": hitstop, "move": cur.get("id", ""), "connected": connected, "chain": chain.duplicate(),
 		"juggle": juggle, "combo": combo_hits, "invuln": invuln, "ko": ko }
+
+## Everything the simulation reads back, for rollback: save() copies it, restore() puts it back. `cur` is stored as its move id.
+const STATE := ["hp", "x", "y", "vx", "vy", "kb", "facing", "state", "st", "jump_dir", "hitstop", "stun_len", "invuln", "connected",
+	"hits_done", "chain", "air_used", "hit_heavy", "crouch_block", "hard_kd", "ko", "juggle", "combo_hits", "press", "prev_buttons",
+	"throw_vx", "throw_vy", "throw_dmg", "throw_att"]
+
+func save() -> Dictionary:
+	var d := { "cur": cur.get("id", "") }
+	for k in STATE:
+		var v = get(k)
+		d[k] = v.duplicate(true) if (v is Array or v is Dictionary) else v
+	return d
+
+func restore(d: Dictionary) -> void:
+	for k in STATE:
+		var v = d[k]
+		set(k, v.duplicate(true) if (v is Array or v is Dictionary) else v)
+	cur = moves[d.cur] if d.cur != "" and moves.has(d.cur) else {}
