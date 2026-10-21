@@ -53,7 +53,34 @@ func _gear(parent: Node3D, pos: Vector3, rot: Vector3, r: float, thick: float, t
 		var b := BoxMesh.new(); b.size = Vector3(r * 0.38, thick, r * 0.34)
 		_add(g, b, BRASS, Vector3(cos(a), 0, sin(a)) * r * 1.02, Vector3(0, -rad_to_deg(a), 0))
 
-func _save(root: Node3D, name: String) -> void:
+## Collapses a prop's many primitive meshes into one mesh with vertex colours: one surface plus one outline pass is 2 draw calls per prop.
+func _merge(root: Node3D) -> Node3D:
+	var verts := PackedVector3Array(); var norms := PackedVector3Array(); var cols := PackedColorArray(); var uvs := PackedVector2Array(); var idx := PackedInt32Array()
+	for mi in root.find_children("*", "MeshInstance3D", true, false):
+		var xf := Transform3D.IDENTITY
+		var n: Node = mi
+		while n != root:
+			xf = (n as Node3D).transform * xf
+			n = n.get_parent()
+		var c: Color = (mi.material_override as ShaderMaterial).get_shader_parameter("base_color")
+		var a := (mi.mesh as Mesh).surface_get_arrays(0)
+		var off := verts.size()
+		for v in a[Mesh.ARRAY_VERTEX]: verts.append(xf * v); cols.append(c)
+		for nn in a[Mesh.ARRAY_NORMAL]: norms.append((xf.basis * nn).normalized())
+		uvs.append_array(PackedVector2Array(a[Mesh.ARRAY_TEX_UV]) if a[Mesh.ARRAY_TEX_UV] != null else PackedVector2Array())
+		for i in a[Mesh.ARRAY_INDEX]: idx.append(off + i)
+	var arrays := []; arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts; arrays[Mesh.ARRAY_NORMAL] = norms; arrays[Mesh.ARRAY_COLOR] = cols
+	arrays[Mesh.ARRAY_TEX_UV] = uvs; arrays[Mesh.ARRAY_INDEX] = idx
+	var am := ArrayMesh.new(); am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	var out := Node3D.new(); out.name = root.name
+	var mi2 := MeshInstance3D.new(); mi2.mesh = am; mi2.name = "Mesh"
+	mi2.material_override = _mat(Color.WHITE)
+	out.add_child(mi2)
+	return out
+
+func _save(root_in: Node3D, name: String) -> void:
+	var root := _merge(root_in)
 	_own(root, root)
 	var ps := PackedScene.new(); ps.pack(root)
 	DirAccess.make_dir_recursive_absolute(OUT)

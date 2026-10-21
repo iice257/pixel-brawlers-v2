@@ -3,7 +3,7 @@
 	"materials": 16,
 	"problems": [
 		"26706 triangles (budget 15000): re-export from VRoid with polygon reduction on and hair reduced",
-		"16 materials (budget 3): merge materials in VRoid (one atlas)",
+		"16 materials (budget 6): turn on VRoid export option reduce materials (target 4-6)",
 		"source textures up to 2048 px were downscaled to 1024 (use a 1024 px atlas in VRoid)"
 	],
 	"source_max_texture_px": 2048,

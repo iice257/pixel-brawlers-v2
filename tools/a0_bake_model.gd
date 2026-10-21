@@ -57,7 +57,7 @@ func _budget_report(skel: Skeleton3D) -> void:
 			mats[mi.get_surface_override_material(s).resource_name] = true
 	var problems := []
 	if tris > MAX_TRIS: problems.append("%d triangles (budget %d): re-export from VRoid with polygon reduction on and hair reduced" % [tris, MAX_TRIS])
-	if mats.size() > MAX_MATERIALS: problems.append("%d materials (budget %d): turn on VRoid export "reduce materials" (target 4-6)" % [mats.size(), MAX_MATERIALS])
+	if mats.size() > MAX_MATERIALS: problems.append("%d materials (budget %d): turn on VRoid export option reduce materials (target 4-6)" % [mats.size(), MAX_MATERIALS])
 	if _src_max_tex > MAX_TEX: problems.append("source textures up to %d px were downscaled to %d (use a %d px atlas in VRoid)" % [_src_max_tex, MAX_TEX, MAX_TEX])
 	var report := { "id": id, "triangles": tris, "materials": mats.size(), "source_max_texture_px": _src_max_tex, "within_budget": problems.is_empty(), "problems": problems }
 	var f := FileAccess.open("res://fighters/%s/budget.json" % id, FileAccess.WRITE)
@@ -71,20 +71,46 @@ func _own(n: Node, root: Node) -> void:
 		c.owner = root
 		_own(c, root)
 
-## Rebuilds the mesh without blend shapes (56 face morphs are about 10 MB and the fighters do not use them).
-func _strip_blends(src: ArrayMesh) -> ArrayMesh:
-	var am := ArrayMesh.new()
+## Rebuilds the mesh without blend shapes (56 face morphs are about 10 MB and the fighters do not use them), and merges
+## surfaces that share a material (each surface is a draw call, doubled by its outline pass). Returns [mesh, first source surface of each new surface].
+func _strip_blends(src: ArrayMesh) -> Array:
+	var groups := {}      # material name -> source surface indices
+	var order := []
 	for s in src.get_surface_count():
-		var arrays := src.surface_get_arrays(s)
-		arrays.resize(Mesh.ARRAY_MAX)
-		am.add_surface_from_arrays(src.surface_get_primitive_type(s), arrays)
-	return am
+		var key: String = src.surface_get_material(s).resource_name
+		if not groups.has(key):
+			groups[key] = []
+			order.append(key)
+		groups[key].append(s)
+	var am := ArrayMesh.new()
+	var firsts := []
+	for key in order:
+		var merged := []
+		merged.resize(Mesh.ARRAY_MAX)
+		for s in groups[key]:
+			var arrays := src.surface_get_arrays(s)
+			arrays.resize(Mesh.ARRAY_MAX)
+			if merged[Mesh.ARRAY_VERTEX] == null:
+				merged = arrays
+				continue
+			var off: int = (merged[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
+			for k in Mesh.ARRAY_MAX:
+				if k == Mesh.ARRAY_INDEX:
+					var idx: PackedInt32Array = merged[k]
+					for i in arrays[k]: idx.append(i + off)
+					merged[k] = idx
+				elif arrays[k] != null and merged[k] != null:
+					merged[k].append_array(arrays[k])
+		am.add_surface_from_arrays(src.surface_get_primitive_type(groups[key][0]), merged)
+		firsts.append(groups[key][0])
+	return [am, firsts]
 
 func _toonify(mi: MeshInstance3D) -> void:
 	var src: ArrayMesh = mi.mesh
-	mi.mesh = _strip_blends(src)
+	var stripped := _strip_blends(src)
+	mi.mesh = stripped[0]
 	for s in mi.mesh.get_surface_count():
-		var old: ShaderMaterial = src.surface_get_material(s)
+		var old: ShaderMaterial = src.surface_get_material(stripped[1][s])
 		var shader_name := old.shader.resource_path.get_file()
 		var mat_name := old.resource_name
 		var is_eye := "EYE" in mat_name

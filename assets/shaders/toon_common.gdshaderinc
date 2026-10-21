@@ -19,12 +19,13 @@ instance uniform float swap = 0.0;                       // 1 rotates the hue (P
 instance uniform float flash = 0.0;                      // 0..1 white hit flash
 
 varying vec3 v_wn;
+varying vec4 v_col;   // vertex colour tints the albedo (merged props carry their colours here; model meshes are white)
 
 vec3 toon_color(vec2 uv, vec3 view_n, vec3 view_dir, vec2 frag, out float alpha) {
 	vec4 tex = texture(albedo_tex, uv);
 	alpha = tex.a * base_color.a;
-	vec3 lit = tex.rgb * base_color.rgb;
-	vec3 shd = tex.rgb * shade_color.rgb;
+	vec3 lit = tex.rgb * v_col.rgb * base_color.rgb;
+	vec3 shd = tex.rgb * v_col.rgb * shade_color.rgb;
 	vec3 n = normalize(mix(v_wn, normalize(face_forward), face_flatten));
 	float ndl = dot(n, normalize(light_toward));
 	float aa = 0.015;
