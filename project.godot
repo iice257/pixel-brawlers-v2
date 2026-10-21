@@ -5,7 +5,7 @@ config_version=5
 
 config/name="Pixel Brawlers"
 config/description="2D pixel fighting game (v2, Godot 4)."
-run/main_scene="res://ui/fight.tscn"
+run/main_scene="res://a0/a0_fight.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]
@@ -14,12 +14,10 @@ Controls="*res://scripts/autoload/controls.gd"
 
 [display]
 
-window/size/viewport_width=384
-window/size/viewport_height=216
-window/size/window_width_override=1152
-window/size/window_height_override=648
-window/stretch/mode="viewport"
-window/stretch/scale_mode="integer"
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
 
 [physics]
 
