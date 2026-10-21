@@ -115,6 +115,7 @@ func _build_hud() -> void:
 	root.add_child(banner_pivot)
 	banner = _label(banner_pivot, Vector2(-640, -60), "HudBanner")
 	banner.size = Vector2(1280, 120); banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	banner.theme = root.theme    # a Node2D parent does not pass the theme down
 	info = _label(root, Vector2(40, 64), "HudInfo")
 	hint = _label(root, Vector2(40, 690), "HudHint")
 	hint.text = "P1 %s | F1 help | F2 boxes | F3 debug | R restart" % Controls.describe("p1")
