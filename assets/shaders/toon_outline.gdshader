@@ -8,9 +8,12 @@ uniform float line_mix = 0.0;                 // pure ink: no albedo tint (a tin
 uniform float width = 0.0075;                 // world units
 uniform float alpha_cut = 0.5;
 uniform bool use_cut = false;
+uniform vec3 light_toward = vec3(-0.35, 0.8, 0.5);
+uniform float thin = 0.55;                    // width factor on the lit side; the shadow side gets thin + 1
 void vertex() {
 	vec3 n = normalize(NORMAL);
-	VERTEX += n * width;
+	float lit = clamp(dot(normalize(MODEL_NORMAL_MATRIX * n), normalize(light_toward)) * 0.5 + 0.5, 0.0, 1.0);
+	VERTEX += n * width * (thin + (1.0 - lit));   // thick-and-thin ink: heavier on the shadow side, fine on the lit side
 }
 void fragment() {
 	vec4 tex = texture(albedo_tex, UV);
