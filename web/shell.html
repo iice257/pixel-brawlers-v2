@@ -180,6 +180,9 @@ body {
 		<script>
 const GODOT_CONFIG = $GODOT_CONFIG;
 const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+// Our own cache worker (pb.service.worker.js) is registered once the game is running; stop the engine installing Godot's stock one.
+const CACHE_WORKER = 'pb.service.worker.js';
+GODOT_CONFIG['serviceWorker'] = '';
 const engine = new Engine(GODOT_CONFIG);
 
 (function () {
@@ -208,6 +211,9 @@ const engine = new Engine(GODOT_CONFIG);
 		initializing = false;
 		loader.classList.add('fade');
 		setTimeout(() => loader.remove(), 600);
+		if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+			navigator.serviceWorker.register(CACHE_WORKER).catch((err) => console.warn('Cache worker not registered:', err));
+		}
 	}
 
 	function fail(message) {

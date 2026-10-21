@@ -49,6 +49,7 @@ jobs:
         run: |
           mkdir -p build/web
           ~/godot/godot --headless --path . --export-release "Web" build/web/index.html
+          sed "s/__BUILD_ID__/${GITHUB_SHA::10}/" web/pb.service.worker.js > build/web/pb.service.worker.js
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
