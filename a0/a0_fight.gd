@@ -13,7 +13,7 @@ var info: Label
 var banner: Label
 var timer_label: Label
 var hint: Label
-var bars: Array[ColorRect] = []
+var bars: Array[ProgressBar] = []
 var model_ids := ["a0", "a0"]
 var seq_dir := ""
 var seq_every := 3
@@ -25,6 +25,7 @@ var show_boxes := false
 var box_mesh: MeshInstance3D
 var _script_t := 0
 var _done := false
+var shake := 0.0   # camera shake amplitude in metres, kicked by hit/block events and decayed per tick
 
 func _ready() -> void:
 	var win := get_window()
@@ -77,25 +78,27 @@ func _build_stage() -> void:
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new(); add_child(layer)
+	var root := Control.new(); root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.theme = HudTheme.build()
+	layer.add_child(root)
 	for i in 2:
-		var back := ColorRect.new(); back.color = Color("0a0614")
-		back.position = Vector2(40, 28) if i == 0 else Vector2(1280 - 40 - 520, 28); back.size = Vector2(520, 26)
-		layer.add_child(back)
-		var bar := ColorRect.new(); bar.color = Color("ffcf33")
-		bar.position = back.position + Vector2(3, 3); bar.size = Vector2(514, 20)
-		layer.add_child(bar); bars.append(bar)
-	timer_label = _label(layer, Vector2(600, 20), 40, Color.WHITE)
+		var bar := ProgressBar.new(); bar.show_percentage = false
+		bar.min_value = 0.0; bar.max_value = 1.0; bar.value = 1.0
+		bar.fill_mode = ProgressBar.FILL_BEGIN_TO_END if i == 0 else ProgressBar.FILL_END_TO_BEGIN
+		bar.position = Vector2(40, 28) if i == 0 else Vector2(1280 - 40 - 520, 28); bar.size = Vector2(520, 26)
+		root.add_child(bar); bars.append(bar)
+	timer_label = _label(root, Vector2(600, 20), "HudTimer")
 	timer_label.size = Vector2(80, 50); timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	banner = _label(layer, Vector2(0, 250), 72, Color("fff0a0"))
+	banner = _label(root, Vector2(0, 250), "HudBanner")
 	banner.size = Vector2(1280, 100); banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	info = _label(layer, Vector2(40, 64), 14, Color("ffcf33"))
-	hint = _label(layer, Vector2(40, 690), 14, Color("8a80b0"))
+	info = _label(root, Vector2(40, 64), "HudInfo")
+	hint = _label(root, Vector2(40, 690), "HudHint")
 	hint.text = "P1 %s | F2 boxes | R restart" % Controls.describe("p1")
 
-func _label(parent: Node, pos: Vector2, size: int, color: Color) -> Label:
+func _label(parent: Node, pos: Vector2, variation: String) -> Label:
 	var l := Label.new(); l.position = pos
-	l.add_theme_font_size_override("font_size", size)
-	l.add_theme_color_override("font_color", color)
+	l.theme_type_variation = variation
 	parent.add_child(l)
 	return l
 
@@ -130,6 +133,13 @@ func _scripted() -> Array:
 
 func _tick(dt: float, inputs: Array) -> void:
 	match_sim.step(inputs)
+	for e in match_sim.world.events:
+		match e.type:
+			"hit": shake = maxf(shake, clampf(0.02 + float(e.dmg) * 0.0007, 0.02, 0.09))
+			"throw": shake = maxf(shake, 0.07)
+			"block": shake = maxf(shake, 0.012)
+			"ko": shake = maxf(shake, 0.12)
+	shake *= 0.84
 	for v in views: v.present(dt, match_sim.world.tick)
 
 func _physics_process(dt: float) -> void:
@@ -172,14 +182,16 @@ func _cam_follow(snap: bool) -> void:
 	var dist := clampf(10.2 + maxf(sep - 3.2, 0.0) * 0.6, 10.2, 14.0)
 	var target := Vector3(AirshipDeck.clamp_camera_x(mid, dist), 1.05, dist)
 	cam.position = target if snap else cam.position.lerp(target, 0.12)
+	if shake > 0.002:
+		var t := float(match_sim.world.tick)
+		cam.position += Vector3(sin(t * 12.9898), cos(t * 78.233), 0.0) * shake
 
 func _hud() -> void:
 	var fs := match_sim.world.fighters
 	for i in 2:
 		var pct := clampf(float(fs[i].hp) / float(fs[i].stats.hp), 0.0, 1.0)
-		bars[i].color = Color("ffcf33") if pct > 0.3 else Color("ff4a4a")
-		bars[i].size.x = 514.0 * pct
-		if i == 1: bars[i].position.x = 1280 - 40 - 520 + 3 + 514.0 * (1.0 - pct)
+		bars[i].value = pct
+		bars[i].theme_type_variation = "" if pct > 0.3 else "HealthLow"
 	timer_label.text = "%02d" % match_sim.seconds_left()
 	banner.text = _banner()
 	info.text = "P1 %s | P2 %s | combo %d | %d fps | %s | %d draws" % [fs[0].anim(), fs[1].anim(), fs[1].combo_hits, Engine.get_frames_per_second(), RenderingServer.get_current_rendering_method(), RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)]
