@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, viewport-fit=cover">
+		<meta name="theme-color" content="#120e14">
+		<title>$GODOT_PROJECT_NAME</title>
+		<style>
+:root {
+	--soot: #120e14;
+	--soot-2: #1b1520;
+	--brass: #b8883a;
+	--brass-hi: #ecc47a;
+	--steam: #f3e3c0;
+	--dim: #8f7f6b;
+	--alert: #d4553f;
+}
+
+html, body, #canvas {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+body {
+	background: var(--soot);
+	color: var(--steam);
+	overflow: hidden;
+	touch-action: none;
+	font-family: "Bahnschrift", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+#canvas {
+	display: block;
+	background: var(--soot);
+}
+
+#canvas:focus {
+	outline: none;
+}
+
+/* Loader overlay: soot ground, a low brass glow behind the wordmark, one thin progress line. */
+#loader {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 0 16px;
+	background:
+		radial-gradient(60% 45% at 50% 46%, rgba(184, 136, 58, 0.16), rgba(184, 136, 58, 0) 70%),
+		linear-gradient(180deg, var(--soot) 0%, var(--soot-2) 100%);
+	visibility: hidden;
+	opacity: 1;
+	transition: opacity 0.5s ease;
+	z-index: 2;
+}
+
+#loader.fade {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.mark {
+	margin: 0;
+	text-align: center;
+	font-weight: 800;
+	line-height: 0.95;
+	text-transform: uppercase;
+	letter-spacing: 0.26em;
+	margin-right: -0.26em;
+	font-size: clamp(30px, 7.4vw, 88px);
+	color: var(--steam);
+	text-shadow: 0 2px 0 #000, 0 0 40px rgba(236, 196, 122, 0.18);
+	animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.mark span {
+	display: block;
+}
+
+.mark .second {
+	color: var(--brass-hi);
+}
+
+.rule {
+	width: min(520px, 70vw);
+	height: 1px;
+	margin: clamp(20px, 4vh, 36px) 0 clamp(18px, 3.4vh, 30px);
+	background: linear-gradient(90deg, rgba(184, 136, 58, 0), var(--brass) 50%, rgba(184, 136, 58, 0));
+	transform-origin: center;
+	animation: draw 0.9s 0.25s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.meter {
+	width: min(520px, 70vw);
+	animation: fadein 0.6s 0.55s ease both;
+}
+
+.track {
+	position: relative;
+	height: 3px;
+	background: rgba(243, 227, 192, 0.12);
+	overflow: hidden;
+}
+
+#fill {
+	position: absolute;
+	inset: 0;
+	transform-origin: left center;
+	transform: scaleX(0);
+	background: linear-gradient(90deg, var(--brass), var(--brass-hi));
+	transition: transform 0.25s linear;
+}
+
+.track.indeterminate #fill {
+	width: 35%;
+	transform: none;
+	animation: slide 1.3s ease-in-out infinite;
+}
+
+.readout {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 12px;
+	font-size: 12px;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--dim);
+	font-variant-numeric: tabular-nums;
+}
+
+#notice {
+	display: none;
+	max-width: min(520px, 86vw);
+	margin-top: 28px;
+	padding: 14px 18px;
+	border: 1px solid var(--alert);
+	background: rgba(212, 85, 63, 0.1);
+	color: var(--steam);
+	font-size: 14px;
+	line-height: 1.45;
+	text-align: center;
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes draw { from { opacity: 0; transform: scaleX(0); } to { opacity: 1; transform: none; } }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(290%); } }
+
+@media (prefers-reduced-motion: reduce) {
+	.mark, .rule, .meter { animation: none; }
+	#loader { transition: none; }
+	#fill { transition: none; }
+}
+		</style>
+		$GODOT_HEAD_INCLUDE
+	</head>
+	<body>
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			Your browser does not support JavaScript.
+		</noscript>
+
+		<div id="loader" role="status" aria-live="polite">
+			<h1 class="mark"><span>Pixel</span><span class="second">Brawlers</span></h1>
+			<div class="rule"></div>
+			<div class="meter">
+				<div class="track indeterminate" id="track"><div id="fill"></div></div>
+				<div class="readout"><span id="phase">Connecting</span><span id="amount">0%</span></div>
+			</div>
+			<div id="notice"></div>
+		</div>
+
+		<script src="$GODOT_URL"></script>
+		<script>
+const GODOT_CONFIG = $GODOT_CONFIG;
+const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+const engine = new Engine(GODOT_CONFIG);
+
+(function () {
+	const loader = document.getElementById('loader');
+	const track = document.getElementById('track');
+	const fill = document.getElementById('fill');
+	const phase = document.getElementById('phase');
+	const amount = document.getElementById('amount');
+	const notice = document.getElementById('notice');
+
+	let initializing = true;
+	let shown = false;
+
+	function show() {
+		if (shown) {
+			return;
+		}
+		shown = true;
+		loader.style.visibility = 'visible';
+	}
+
+	function done() {
+		if (!initializing) {
+			return;
+		}
+		initializing = false;
+		loader.classList.add('fade');
+		setTimeout(() => loader.remove(), 600);
+	}
+
+	function fail(message) {
+		show();
+		track.classList.remove('indeterminate');
+		fill.style.transform = 'scaleX(0)';
+		phase.textContent = 'Stalled';
+		amount.textContent = '';
+		notice.style.display = 'block';
+		notice.textContent = message;
+		initializing = false;
+	}
+
+	function displayFailureNotice(err) {
+		console.error(err);
+		fail(err instanceof Error ? err.message : (typeof err === 'string' ? err : 'An unknown error occurred.'));
+	}
+
+	function megabytes(bytes) {
+		return (bytes / 1048576).toFixed(1);
+	}
+
+	function onProgress(current, total) {
+		if (current > 0 && total > 0) {
+			const pct = Math.min(current / total, 1);
+			track.classList.remove('indeterminate');
+			fill.style.transform = 'scaleX(' + pct + ')';
+			phase.textContent = pct < 0.35 ? 'Firing the boiler' : (pct < 0.9 ? 'Building steam' : 'Taking positions');
+			amount.textContent = Math.floor(pct * 100) + '%  ·  ' + megabytes(current) + ' / ' + megabytes(total) + ' MB';
+		} else {
+			track.classList.add('indeterminate');
+			phase.textContent = 'Connecting';
+			amount.textContent = '';
+		}
+	}
+
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+
+	if (missing.length !== 0) {
+		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
+			let serviceWorkerRegistrationPromise;
+			try {
+				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
+			} catch (err) {
+				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
+			}
+			Promise.race([
+				serviceWorkerRegistrationPromise.then((registration) => {
+					if (registration != null) {
+						return Promise.reject(new Error('Service worker already exists.'));
+					}
+					return registration;
+				}).then(() => engine.installServiceWorker()),
+				new Promise((resolve) => {
+					setTimeout(() => resolve(), 2000);
+				}),
+			]).then(() => {
+				window.location.reload();
+			}).catch((err) => {
+				console.error('Error while registering service worker:', err);
+			});
+		} else {
+			fail('This browser is missing features the game needs:\n' + missing.join('\n'));
+		}
+	} else {
+		show();
+		engine.startGame({ 'onProgress': onProgress }).then(done, displayFailureNotice);
+	}
+}());
+		</script>
+	</body>
+</html>

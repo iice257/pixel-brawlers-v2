@@ -7,6 +7,9 @@ config/name="Pixel Brawlers"
 config/description="2D pixel fighting game (v2, Godot 4)."
 run/main_scene="res://a0/a0_fight.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://web/icon.svg"
+boot_splash/show_image=false
+boot_splash/bg_color=Color(0.0705882, 0.054902, 0.0784314, 1)
 
 [autoload]
 
