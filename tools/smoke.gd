@@ -12,7 +12,7 @@ func _initialize() -> void:
 	await process_frame
 	await process_frame
 	for p in ["p1", "p2"]:
-		for a in ["up", "down", "left", "right", "lp", "hp", "lk", "hk", "block", "throw"]:
+		for a in ["up", "down", "left", "right", "light", "medium", "heavy", "special", "block", "throw"]:
 			if not InputMap.has_action("%s_%s" % [p, a]):
 				push_error("missing action %s_%s" % [p, a]); ok = false
 	print("SMOKE ", "PASS" if ok else "FAIL")

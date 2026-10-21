@@ -1,29 +1,29 @@
 extends Node
 ## Input actions, registered at startup so bindings are data (rebindable, saved to user://bindings.cfg).
-## Default layout carried over from v1 (docs/v1/OVERHAUL_PLAN.md R1): punches on the top row, kicks below, thumb blocks.
-## Action names: "<player>_<action>", player = p1 | p2; actions = up down left right lp hp lk hk block throw.
+## Default layout carried over from v1 (docs/v1/OVERHAUL_PLAN.md R1): light/medium/heavy/special on U I J K, thumb blocks.
+## Action names: "<player>_<action>", player = p1 | p2; actions = up down left right light medium heavy special block throw.
 
-const ACTIONS := ["up", "down", "left", "right", "lp", "hp", "lk", "hk", "block", "throw"]
+const ACTIONS := ["up", "down", "left", "right", "light", "medium", "heavy", "special", "block", "throw"]
 const SAVE_PATH := "user://bindings.cfg"
 
 const DEFAULT_KEYS := {
 	"p1": {
 		"up": [KEY_W], "down": [KEY_S], "left": [KEY_A], "right": [KEY_D],
-		"lp": [KEY_U], "hp": [KEY_I], "lk": [KEY_J], "hk": [KEY_K],
+		"light": [KEY_U], "medium": [KEY_I], "heavy": [KEY_J], "special": [KEY_K],
 		"block": [KEY_SPACE, KEY_L], "throw": [KEY_O],
 	},
 	"p2": {
 		"up": [KEY_UP], "down": [KEY_DOWN], "left": [KEY_LEFT], "right": [KEY_RIGHT],
-		"lp": [KEY_KP_4, KEY_BRACKETLEFT], "hp": [KEY_KP_5, KEY_BRACKETRIGHT],
-		"lk": [KEY_KP_1, KEY_SEMICOLON], "hk": [KEY_KP_2, KEY_APOSTROPHE],
+		"light": [KEY_KP_4, KEY_BRACKETLEFT], "medium": [KEY_KP_5, KEY_BRACKETRIGHT],
+		"heavy": [KEY_KP_1, KEY_SEMICOLON], "special": [KEY_KP_2, KEY_APOSTROPHE],
 		"block": [KEY_KP_0, KEY_SLASH], "throw": [KEY_KP_3, KEY_PERIOD],
 	},
 }
 
-# Gamepad (device 0 -> p1, device 1 -> p2): X LP, Y HP, A LK, B HK, shoulders block, triggers throw.
+# Gamepad (device 0 -> p1, device 1 -> p2): X light, Y medium, A heavy, B special, shoulders block, triggers throw.
 const PAD_BUTTONS := {
 	"up": [JOY_BUTTON_DPAD_UP], "down": [JOY_BUTTON_DPAD_DOWN], "left": [JOY_BUTTON_DPAD_LEFT], "right": [JOY_BUTTON_DPAD_RIGHT],
-	"lp": [JOY_BUTTON_X], "hp": [JOY_BUTTON_Y], "lk": [JOY_BUTTON_A], "hk": [JOY_BUTTON_B],
+	"light": [JOY_BUTTON_X], "medium": [JOY_BUTTON_Y], "heavy": [JOY_BUTTON_A], "special": [JOY_BUTTON_B],
 	"block": [JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_RIGHT_SHOULDER],
 }
 const PAD_AXES := { "left": [JOY_AXIS_LEFT_X, -1.0], "right": [JOY_AXIS_LEFT_X, 1.0], "up": [JOY_AXIS_LEFT_Y, -1.0], "down": [JOY_AXIS_LEFT_Y, 1.0], "throw": [JOY_AXIS_TRIGGER_RIGHT, 1.0] }
@@ -80,6 +80,6 @@ func _load() -> void:
 ## Human-readable one-liner for hints and the cheat sheet, generated from the live bindings.
 func describe(player: String) -> String:
 	var k := func(a: String) -> String: return OS.get_keycode_string(keys[player][a][0])
-	return "%s%s%s%s move | %s %s punch | %s %s kick | %s block | %s throw" % [
+	return "%s%s%s%s move | %s light | %s medium | %s heavy | %s special | %s block | %s throw" % [
 		k.call("up"), k.call("left"), k.call("down"), k.call("right"),
-		k.call("lp"), k.call("hp"), k.call("lk"), k.call("hk"), k.call("block"), k.call("throw")]
+		k.call("light"), k.call("medium"), k.call("heavy"), k.call("special"), k.call("block"), k.call("throw")]

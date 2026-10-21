@@ -84,5 +84,5 @@ func test_deterministic() -> void:
 
 func test_placeholder_meets_anim_contract() -> void:
 	var map := AnimMap.load_for("placeholder")
-	var moves: Array = FighterSim.load_data("placeholder").moves
+	var moves: Array = FighterSim.load_data("placeholder").moves.keys()
 	assert_eq(AnimContract.missing(map, moves), [])

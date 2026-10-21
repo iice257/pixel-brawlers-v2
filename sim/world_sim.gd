@@ -1,11 +1,13 @@
 class_name WorldSim
 extends RefCounted
-## The whole match simulation: two fighters, fixed 60 Hz ticks, deterministic for the same inputs and seed.
+## The whole fight simulation: two fighters, fixed 60 Hz ticks, deterministic for the same inputs and seed.
 ## step([p1_input, p2_input]) with inputs { left, right, up, down, buttons }.
+## `events` is rebuilt every step for presentation: { type: hit | block | throw | ko, att, def, dmg, tick }.
 
 var tick := 0
 var rng := RandomNumberGenerator.new()
 var fighters: Array[FighterSim] = []
+var events: Array = []
 
 func _init(p1 := "placeholder", p2 := "placeholder", seed := 1) -> void:
 	rng.seed = seed
@@ -23,14 +25,86 @@ static func clean(raw: Dictionary) -> Dictionary:
 	i.up = raw.get("up", false); i.down = raw.get("down", false) and not i.up
 	return i
 
+## Back to round start positions, full HP, fresh buffers. Wins and timers live in MatchSim.
+func reset_round() -> void:
+	fighters[0].reset(SimConst.START_X[0], 1)
+	fighters[1].reset(SimConst.START_X[1], -1)
+	events.clear()
+
 func step(inputs: Array) -> void:
 	tick += 1
+	events.clear()
+	var ci := [clean(inputs[0]), clean(inputs[1])]
 	for f in fighters:
 		var o := fighters[1 - f.idx]
 		if f.grounded() and f.actionable() and absf(o.x - f.x) > 0.5: f.facing = 1 if o.x > f.x else -1
-	for f in fighters: f.step(clean(inputs[f.idx]))
+	for f in fighters: f.feed(ci[f.idx])
+	for f in fighters:
+		if f.hitstop > 0: f.hitstop -= 1
+		else: f.step(ci[f.idx])
+	_resolve()
 	_separate()
 	_clamp()
+
+# ---------------------------------------------------------------- hits
+
+func _at_wall(f: FighterSim) -> bool:
+	return f.x <= SimConst.STAGE_MIN + 0.5 or f.x >= SimConst.STAGE_MAX - 0.5
+
+func _resolve() -> void:
+	var results := []
+	for f in fighters:
+		var o := fighters[1 - f.idx]
+		if not f.attacking(): continue
+		if f.cur.kind == "throw":
+			if f.st == int(f.cur.startup) + 1 and not f.connected: _try_throw(f, o)
+			continue
+		for pair in f.active_hits():
+			var h: Dictionary = pair[1]
+			if not o.hittable(): continue
+			var hr := f.hit_rect(h)
+			var touching := false
+			for hb in o.hurt_boxes():
+				if hr.intersects(hb): touching = true; break
+			if not touching: continue
+			if o.state == "launched" and o.juggle < int(h.juggle_cost): continue
+			results.append({ "f": f, "o": o, "i": pair[0], "h": h, "blocked": o.can_block(h.get("level", "mid")) })
+			break
+	for r in results: _apply(r)
+
+func _apply(r: Dictionary) -> void:
+	var f: FighterSim = r.f; var o: FighterSim = r.o; var h: Dictionary = r.h
+	var away := 1 if o.x > f.x else -1 if o.x < f.x else f.facing
+	f.hits_done.append(r.i)
+	var pb: float
+	if r.blocked:
+		o.receive_block(h, away)
+		pb = h.pb_block
+		events.append({ "type": "block", "att": f.idx, "def": o.idx, "dmg": 0, "tick": tick })
+	else:
+		var was_ko := o.ko
+		var dmg := o.receive_hit(h, away, f.stats.get("pwr", 1.0))
+		pb = h.pb_hit
+		events.append({ "type": "hit", "att": f.idx, "def": o.idx, "dmg": dmg, "tick": tick })
+		if o.ko and not was_ko: events.append({ "type": "ko", "att": f.idx, "def": o.idx, "dmg": dmg, "tick": tick })
+	f.connected = true
+	f.hitstop = o.hitstop
+	if _at_wall(o): f.kb = -away * pb * SimConst.CORNER_SHARE
+
+func _try_throw(f: FighterSim, o: FighterSim) -> void:
+	var m := f.cur
+	if not (o.state in FighterSim.THROWABLE) or o.invuln > 0 or o.y > 0.0 or f.y > 0.0: return
+	if absf(o.x - f.x) > float(m.range): return
+	var away := 1 if o.x > f.x else -1 if o.x < f.x else f.facing
+	var was_ko := o.ko
+	var dmg := int(roundf(m.dmg * f.stats.get("pwr", 1.0) * o.stats.get("def", 1.0)))
+	o.receive_throw(dmg, away, m.launch, int(m.hitstop))
+	f.connected = true
+	f.hitstop = int(m.hitstop)
+	events.append({ "type": "throw", "att": f.idx, "def": o.idx, "dmg": dmg, "tick": tick })
+	if o.ko and not was_ko: events.append({ "type": "ko", "att": f.idx, "def": o.idx, "dmg": dmg, "tick": tick })
+
+# ---------------------------------------------------------------- spacing
 
 # Push boxes never overlap: split the overlap between both fighters (walls take the share a cornered fighter cannot).
 func _separate() -> void:
@@ -40,7 +114,7 @@ func _separate() -> void:
 	var overlap := minf(ra.end.x, rb.end.x) - maxf(ra.position.x, rb.position.x)
 	if overlap <= 0.0: return
 	var dir := 1.0 if a.x < b.x or (a.x == b.x and a.facing > 0) else -1.0
-	if a.state == "air" or b.state == "air":   # airborne bodies drift apart 1 px/tick, so a jump can cross over (v1 rule)
+	if a.airborne() or b.airborne():   # airborne bodies drift apart 1 px/tick, so a jump can cross over (v1 rule)
 		var d := minf(overlap, 1.0) / 2.0
 		a.x -= dir * d; b.x += dir * d
 		return
@@ -55,12 +129,11 @@ func _clamp() -> void:
 		a.x = mid - s * half; b.x = mid + s * half
 	for f in fighters: f.x = clampf(f.x, SimConst.STAGE_MIN, SimConst.STAGE_MAX)
 	# a fighter pinned by the wall pushes the other one out instead of overlapping
-	var at_wall := func(f: FighterSim) -> bool: return f.x <= SimConst.STAGE_MIN or f.x >= SimConst.STAGE_MAX
-	if a.state == "air" or b.state == "air" or not (at_wall.call(a) or at_wall.call(b)): return
+	if a.airborne() or b.airborne() or not (_at_wall(a) or _at_wall(b)): return
 	var ra := a.push_box(); var rb := b.push_box()
 	if ra.intersects(rb):
 		var overlap := minf(ra.end.x, rb.end.x) - maxf(ra.position.x, rb.position.x)
-		var walled := a if at_wall.call(a) else b
+		var walled := a if _at_wall(a) else b
 		var other := b if walled == a else a
 		other.x += signf(other.x - walled.x) * overlap
 
