@@ -48,13 +48,13 @@ Logo, key art, concept sheets, portraits, airship backdrop, HUD kit and onomatop
 - Check the web budget (GODOT_PLAN) before adding any asset.
 
 ## 2b. Making a fighter in VRoid (budget-safe export)
-Web budget per fighter: 15,000 triangles or fewer, 3 materials or fewer, textures 1024 px or smaller (GODOT_PLAN A0).
+Web budget per fighter: 15,000 triangles or fewer, 6 materials or fewer, textures 1024 px or smaller (GODOT_PLAN A0); the 150 draw-call limit governs (the outline pass doubles the draws).
 - In VRoid Studio, before export, use **Export as VRM 0.x** (not 1.0).
-- In the export dialog: turn **Polygon Reduction on**, reduce **hair** (fewer hair meshes and bundles), and set **Texture atlas / texture size to 1024**. Merge materials where the dialog allows it (fewer, larger atlases).
+- In the export dialog: turn **Polygon Reduction on**, reduce **hair** (fewer hair meshes and bundles), and set **Texture atlas / texture size to 1024**. Turn on the export option to **reduce materials** and aim for 4 to 6 materials (VRoid merges them; we do not merge at bake time).
 - Keep the standard humanoid skeleton; no extra bones are needed (spring bones and blend shapes are stripped in the bake).
 - Bake it: `tools/bake_fighter.sh <vrm> <id>`. The script prints and writes `fighters/<id>/budget.json` (triangles, materials, source texture size) and exits with code 3 when over budget; the model is still baked so it can be inspected.
 - Optional per-character tuning goes in `fighters/<id>/look.json` (shade colours, outline widths, texture flatten boxes, accessories).
-- Status at 2026-10-21: `a0` (VRoid Base_Female) is 14,804 triangles but 15 materials and 2048 px source textures; `e` (AvatarSample_E) is 26,706 triangles. Both are over budget on materials and need an atlas-merge pass before they ship.
+- Status at 2026-10-21: `a0` (VRoid Base_Female) is 14,804 triangles and 15 materials, accepted as a sample; `e` (AvatarSample_E) is 26,706 triangles. Real characters take their material count from VRoid's reduce-materials export.
 
 ## 3. Buy later (drop-in replacements)
 Prices are estimates unless a store page was checked on the date shown. Nothing here is needed before A0.

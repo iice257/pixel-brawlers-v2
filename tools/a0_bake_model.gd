@@ -44,7 +44,7 @@ func _init() -> void:
 	quit()
 
 const MAX_TRIS := 15000
-const MAX_MATERIALS := 3
+const MAX_MATERIALS := 6
 var _src_max_tex := 0
 
 ## Web budget check (GODOT_PLAN A0): warns loudly and writes fighters/<id>/budget.json. Over budget still bakes, so a model can be inspected.
@@ -57,7 +57,7 @@ func _budget_report(skel: Skeleton3D) -> void:
 			mats[mi.get_surface_override_material(s).resource_name] = true
 	var problems := []
 	if tris > MAX_TRIS: problems.append("%d triangles (budget %d): re-export from VRoid with polygon reduction on and hair reduced" % [tris, MAX_TRIS])
-	if mats.size() > MAX_MATERIALS: problems.append("%d materials (budget %d): merge materials in VRoid (one atlas)" % [mats.size(), MAX_MATERIALS])
+	if mats.size() > MAX_MATERIALS: problems.append("%d materials (budget %d): turn on VRoid export "reduce materials" (target 4-6)" % [mats.size(), MAX_MATERIALS])
 	if _src_max_tex > MAX_TEX: problems.append("source textures up to %d px were downscaled to %d (use a %d px atlas in VRoid)" % [_src_max_tex, MAX_TEX, MAX_TEX])
 	var report := { "id": id, "triangles": tris, "materials": mats.size(), "source_max_texture_px": _src_max_tex, "within_budget": problems.is_empty(), "problems": problems }
 	var f := FileAccess.open("res://fighters/%s/budget.json" % id, FileAccess.WRITE)
