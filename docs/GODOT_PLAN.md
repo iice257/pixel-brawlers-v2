@@ -1,8 +1,16 @@
 # Pixel Brawlers v2 (Godot 4): build plan
 
-Rev 3 (2026-10-20). Replaces rev 2, which assumed pixel art. Art direction is in `docs/ART_DIRECTION.md`; the owner's answers (web first, steampunk without elements, roster 2 then 6) are recorded there.
+Rev 4 (2026-10-21): platforms are now desktop, web and mobile (multiplayer later), the next gate is a feel gate, and moves are hand-keyed poses. Rev 3 (2026-10-20) replaced rev 2, which assumed pixel art. Art direction is in `docs/ART_DIRECTION.md`; the owner's answers (web first, steampunk without elements, roster 2 then 6) are recorded there.
 
-The product: a 2.5D steampunk anime fighter. Characters are 3D cel-shaded, gameplay stays on a 2D plane, and the game must run **in the browser**.
+The product: a 2.5D steampunk anime fighter. Characters are 3D cel-shaded and gameplay stays on a 2D plane. It ships on **desktop (Windows first, best quality), web and mobile**, and the deterministic sim keeps online rollback multiplayer possible.
+
+## Rev 4 changes (owner playtest, 2026-10-21)
+- **Hybrid renderer:** per-platform renderer overrides. Desktop uses Forward+ (MSAA 4x plus TAA or SMAA, better shadows, glow on the brass emission). Web and mobile use Compatibility (MSAA 4x plus FXAA, device pixel ratio up to 2). One toon shader and outline compile on both. The web budget below applies to web and mobile only.
+- **Feel before infrastructure:** the next gate is a feel gate. Every button plays a distinct move; crouch and lows work; hits land with hitstop, shake, spark, flash, knockback and SFX; KO goes to slow-mo, a K.O. banner, a win pose and the next round. The frame is never frozen.
+- **Moves are hand-keyed poses:** 3 to 5 key poses per move (anticipation, held impact, follow-through, recovery) stored as bone-rotation data, posed over the free clips where they help. There is no paid animation pack.
+- **Rollback-ready sim:** `WorldSim.restore(snapshot)` and a per-tick checksum, tested by rolling back and resimulating. Netcode itself is a later phase (WebRTC on web, ENet on desktop).
+- **A run, not a parse check:** before any report, the builder launches the real game, plays the change and captures at the game resolution. The orchestrator rejects any gate a stranger would not find exciting.
+- **Branding is data:** the web loader and the title read the name, tagline, colours and logo from `web/brand.json` (plus an optional logo file), so a rename is a file edit.
 
 ## What carries over unchanged
 - The G0 deterministic 60 Hz sim (`sim/`), the animation contract and AnimMap, rebindable controls, the 9 GUT tests, CI and the Pages deploy.
@@ -11,8 +19,8 @@ The product: a 2.5D steampunk anime fighter. Characters are 3D cel-shaded, gamep
 
 ## What changes
 - **Rendering sits on top of the sim.** The sim outputs state, frame, position and facing. A presenter node poses the 3D character from that. The sim never reads the 3D scene. Hit, hurt and push boxes stay 2D rects keyed by move frame, authored in a small box editor over the model's side view.
-- **Web first.** The Compatibility renderer (WebGL2) is the only target that must work.
-- **Moves fit animation clips, not pixel packs.** Clips come from Quaternius UAL (CC0) and Mixamo (owner-fetched), retargeted to Godot's humanoid profile.
+- **Every platform:** Compatibility for web and mobile, Forward+ for desktop (rev 4).
+- **Moves are hand-keyed poses** over Quaternius UAL (CC0) clips where they help, retargeted to Godot's humanoid profile. Mixamo and paid packs are out.
 
 ## Design target
 Four attack buttons plus block, as decided: Light, Medium, Heavy, Special, and hold Block.
@@ -25,7 +33,7 @@ Four attack buttons plus block, as decided: Light, Medium, Heavy, Special, and h
 
 Keys stay as in `scripts/autoload/controls.gd` (actions light/medium/heavy/special/block).
 
-## Web budget (hard limits, checked at every gate on the live Pages build)
+## Web and mobile budget (hard limits, checked at every gate on the live Pages build; desktop may exceed them)
 | Item | Limit |
 |---|---|
 | Frame rate | 60 fps on a mid laptop iGPU in Chrome and Firefox |
