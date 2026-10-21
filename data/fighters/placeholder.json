@@ -208,7 +208,7 @@
      "juggle_cost": 1,
      "juggle_start": 0,
      "heavy": false,
-     "level": "mid"
+     "level": "overhead"
     }
    ],
    "land_lag": 3
@@ -249,7 +249,7 @@
      "juggle_cost": 1,
      "juggle_start": 0,
      "heavy": true,
-     "level": "mid"
+     "level": "overhead"
     }
    ],
    "land_lag": 3
@@ -290,7 +290,7 @@
      "juggle_cost": 2,
      "juggle_start": 0,
      "heavy": true,
-     "level": "mid"
+     "level": "overhead"
     }
    ],
    "land_lag": 3
@@ -310,7 +310,7 @@
    "hits": [],
    "range": 46,
    "dmg": 100,
-   "hitstop": 12,
+   "hitstop": 0,
    "launch": [
     2.5,
     4.0
@@ -427,7 +427,7 @@
      "hitstop": 10,
      "pb_hit": 2.2,
      "pb_block": 3.0,
-     "kd": "soft",
+     "kd": "hard",
      "launch": [
       1.5,
       5.5
@@ -435,7 +435,7 @@
      "juggle_cost": 2,
      "juggle_start": 3,
      "heavy": true,
-     "level": "mid"
+     "level": "low"
     }
    ]
   }

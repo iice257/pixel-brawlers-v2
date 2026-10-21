@@ -2,7 +2,8 @@ class_name WorldSim
 extends RefCounted
 ## The whole fight simulation: two fighters, fixed 60 Hz ticks, deterministic for the same inputs and seed.
 ## step([p1_input, p2_input]) with inputs { left, right, up, down, buttons }.
-## `events` is rebuilt every step for presentation: { type: hit | block | throw | ko, att, def, dmg, tick }.
+## `events` is rebuilt every step for presentation: { type: hit | block | grab | throw | tech | ko, att, def, dmg, tick }.
+## grab = a throw connected (no damage yet); throw = its damage landed after the tech window; tech = the grab was broken.
 
 var tick := 0
 var rng := RandomNumberGenerator.new()
@@ -43,6 +44,7 @@ func step(inputs: Array) -> void:
 		if f.hitstop > 0: f.hitstop -= 1
 		else: f.step(ci[f.idx])
 	_resolve()
+	_throw_holds()
 	_separate()
 	_clamp()
 
@@ -53,11 +55,14 @@ func _at_wall(f: FighterSim) -> bool:
 
 func _resolve() -> void:
 	var results := []
+	var a := fighters[0]; var b := fighters[1]
+	var mutual := _grabbing(a) and _grabbing(b) and absf(a.x - b.x) <= minf(float(a.cur.range), float(b.cur.range))
+	if mutual: _tech(a, b)
 	for f in fighters:
 		var o := fighters[1 - f.idx]
-		if not f.attacking(): continue
+		if mutual or not f.attacking(): continue
 		if f.cur.kind == "throw":
-			if f.st == int(f.cur.startup) + 1 and not f.connected: _try_throw(f, o)
+			if _grabbing(f): _try_throw(f, o)
 			continue
 		for pair in f.active_hits():
 			var h: Dictionary = pair[1]
@@ -98,11 +103,34 @@ func _try_throw(f: FighterSim, o: FighterSim) -> void:
 	var away := 1 if o.x > f.x else -1 if o.x < f.x else f.facing
 	var was_ko := o.ko
 	var dmg := int(roundf(m.dmg * f.stats.get("pwr", 1.0) * o.stats.get("def", 1.0)))
-	o.receive_throw(dmg, away, m.launch, int(m.hitstop))
+	o.receive_throw(dmg, away, m.launch, int(m.hitstop), f.idx)
 	f.connected = true
 	f.hitstop = int(m.hitstop)
-	events.append({ "type": "throw", "att": f.idx, "def": o.idx, "dmg": dmg, "tick": tick })
-	if o.ko and not was_ko: events.append({ "type": "ko", "att": f.idx, "def": o.idx, "dmg": dmg, "tick": tick })
+	events.append({ "type": "grab", "att": f.idx, "def": o.idx, "dmg": 0, "tick": tick })
+
+## Is this fighter on the tick its throw connects (or whiffs)?
+func _grabbing(f: FighterSim) -> bool:
+	return f.attacking() and f.cur.kind == "throw" and f.st == int(f.cur.startup) + 1 and not f.connected
+
+## A grabbed fighter can tech with a fresh Throw press on ticks 1..TECH_WINDOW after the grab; on the next tick the damage lands.
+func _throw_holds() -> void:
+	for o in fighters:
+		if o.state != "thrown" or o.throw_att < 0: continue
+		var f := fighters[o.throw_att]
+		if o.st <= SimConst.TECH_WINDOW:
+			if o.press.get(SimConst.THROW, -1) == 0: _tech(f, o)
+		elif o.st == SimConst.TECH_WINDOW + 1:
+			var was_ko := o.ko
+			var dmg := o.throw_dmg
+			o.apply_throw_damage()
+			events.append({ "type": "throw", "att": f.idx, "def": o.idx, "dmg": dmg, "tick": tick })
+			if o.ko and not was_ko: events.append({ "type": "ko", "att": f.idx, "def": o.idx, "dmg": dmg, "tick": tick })
+
+func _tech(a: FighterSim, b: FighterSim) -> void:
+	var dir := 1 if b.x > a.x else -1 if b.x < a.x else a.facing   # screen direction from a to b
+	a.receive_tech(-dir)
+	b.receive_tech(dir)
+	events.append({ "type": "tech", "att": a.idx, "def": b.idx, "dmg": 0, "tick": tick })
 
 # ---------------------------------------------------------------- spacing
 

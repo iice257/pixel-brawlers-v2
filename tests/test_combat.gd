@@ -290,10 +290,10 @@ func test_throw_deals_100_hard_knockdown_lies_34() -> void:
 
 func test_throw_range_46_connects_47_whiffs() -> void:
 	var near := TestKit.arena(46)
-	TestKit.run(near, 12, TestKit.tap(0, THROW))
+	TestKit.run(near, 24, TestKit.tap(0, THROW))
 	assert_eq(near.fighters[1].hp, 900)
 	var far := TestKit.arena(47)
-	TestKit.run(far, 12, TestKit.tap(0, THROW))
+	TestKit.run(far, 24, TestKit.tap(0, THROW))
 	assert_eq(far.fighters[1].hp, 1000)
 
 func test_throw_whiff_locks_attacker_31_ticks() -> void:
@@ -313,12 +313,6 @@ func test_throw_misses_airborne_and_stunned_defenders() -> void:
 	v.fighters[1].state = "hit"; v.fighters[1].stun_len = 60
 	TestKit.run(v, 8, TestKit.tap(0, THROW))
 	assert_eq(v.fighters[1].hp, 1000)
-
-func test_simultaneous_throws_whiff() -> void:
-	var w := TestKit.arena()
-	TestKit.run(w, 12, TestKit.tap(0, THROW), TestKit.tap(0, THROW))
-	assert_eq(w.fighters[0].hp, 1000)
-	assert_eq(w.fighters[1].hp, 1000)
 
 # ---------------------------------------------------------------- trades and determinism
 

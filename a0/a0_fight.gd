@@ -137,6 +137,7 @@ func _tick(dt: float, inputs: Array) -> void:
 		match e.type:
 			"hit": shake = maxf(shake, clampf(0.02 + float(e.dmg) * 0.0007, 0.02, 0.09))
 			"throw": shake = maxf(shake, 0.07)
+			"tech": shake = maxf(shake, 0.03)
 			"block": shake = maxf(shake, 0.012)
 			"ko": shake = maxf(shake, 0.12)
 	shake *= 0.84

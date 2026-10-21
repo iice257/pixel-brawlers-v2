@@ -45,6 +45,9 @@ const LAND_LAG := 3
 const AIR_HIT_VX := 2.0
 const AIR_HIT_VY := 3.0
 const THROW_RELEASE := 14
+const TECH_WINDOW := 7          # defender may tech a grab on the 1st to 7th tick after it connects; damage lands on the 8th
+const TECH_KB := 3.9            # slide per tick of a teched fighter; with KNOCKBACK_DECAY that is about 28 px apart
+const TECH_STUN := 20
 const JUGGLE_POINTS := 3
 
 # Match flow (ticks)

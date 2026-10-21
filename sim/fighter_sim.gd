@@ -41,6 +41,8 @@ var press: Dictionary = {}      # button bit -> ticks since pressed (buffer)
 var prev_buttons := 0
 var throw_vx := 0.0
 var throw_vy := 0.0
+var throw_dmg := 0              # damage of the grab this fighter is held in, applied when the tech window closes
+var throw_att := -1             # index of the grabbing fighter
 
 static func load_data(fighter_id: String) -> Dictionary:
 	var f := FileAccess.open("res://data/fighters/%s.json" % fighter_id, FileAccess.READ)
@@ -59,7 +61,7 @@ func reset(start_x: float, face: int) -> void:
 	state = "idle"; st = 0; jump_dir = 0; hitstop = 0; stun_len = 0; invuln = 0
 	cur = {}; connected = false; hits_done = []; chain = []; air_used = false
 	hit_heavy = false; crouch_block = false; hard_kd = false; ko = false; juggle = 0; combo_hits = 0
-	press = {}; prev_buttons = 0; throw_vx = 0.0; throw_vy = 0.0
+	press = {}; prev_buttons = 0; throw_vx = 0.0; throw_vy = 0.0; throw_dmg = 0; throw_att = -1
 
 func set_state(s: String) -> void:
 	if s != state: state = s; st = 0
@@ -80,8 +82,9 @@ func attacking() -> bool:
 func hittable() -> bool:
 	return invuln <= 0 and not ko and state != "lying" and state != "thrown" and state != "win"
 
-## Can the fighter block a hit of this level now? (mid: any guard; low: crouch guard only)
+## Can the fighter block a hit of this level now? (mid: any guard; low: crouch guard only; overhead: standing guard only)
 func can_block(level: String) -> bool:
+	if level == "overhead": return state == "guard" or (state == "blockstun" and not crouch_block)
 	if state == "cguard" or (state == "blockstun" and crouch_block): return true
 	if state == "guard" or state == "blockstun": return level != "low"
 	return false
@@ -107,7 +110,7 @@ func anim() -> String:
 		"hit", "thrown": return "hit_heavy" if hit_heavy or state == "thrown" else "hit_light"
 		"launched", "lying": return "knockdown"
 		"getup": return "wakeup"
-		"landlag": return "idle"
+		"landlag", "tech": return "idle"
 		_: return state
 
 # ---------------------------------------------------------------- input buffer
@@ -143,7 +146,7 @@ func step(inp: Dictionary) -> void:
 		"attack": _step_attack(inp)
 		"air", "airatk": _step_air()
 		"launched": _step_launched()
-		"hit", "blockstun", "landlag":
+		"hit", "blockstun", "landlag", "tech":
 			if st > stun_len: set_state("idle")
 		"lying":
 			if st > stun_len:
@@ -320,16 +323,29 @@ func receive_block(h: Dictionary, away: int) -> void:
 	vx = 0.0; cur = {}; connected = false; chain = []
 	set_state("blockstun")
 
-## Grabbed: held for THROW_RELEASE ticks, then thrown into a hard knockdown.
-func receive_throw(dmg: int, away: int, launch: Array, stop: int) -> void:
+## Grabbed: held for THROW_RELEASE ticks, then thrown into a hard knockdown. The damage lands when the tech window closes
+## (WorldSim calls apply_throw_damage); a tech cancels it.
+func receive_throw(dmg: int, away: int, launch: Array, stop: int, attacker: int) -> void:
 	combo_hits = 1
-	hp = maxi(0, hp - dmg)
-	if hp <= 0: ko = true
+	throw_dmg = dmg; throw_att = attacker
 	hitstop = stop
 	vx = 0.0; kb = 0.0; cur = {}; connected = false; chain = []; crouch_block = false
 	throw_vx = away * launch[0]; throw_vy = launch[1]
 	hard_kd = false
 	set_state("thrown")
+
+func apply_throw_damage() -> void:
+	hp = maxi(0, hp - throw_dmg)
+	if hp <= 0: ko = true
+	throw_dmg = 0
+
+## Throw tech (either fighter): the grab is cancelled, no damage, both slide apart and are neutral after TECH_STUN ticks.
+func receive_tech(away: int) -> void:
+	throw_dmg = 0; throw_att = -1; combo_hits = 0
+	hitstop = 0; vx = 0.0; cur = {}; connected = false; chain = []; crouch_block = false
+	kb = away * SimConst.TECH_KB
+	stun_len = SimConst.TECH_STUN
+	set_state("tech")
 
 # ---------------------------------------------------------------- boxes
 
