@@ -17,10 +17,10 @@ The product: a 2.5D steampunk anime fighter. Characters are 3D cel-shaded, gamep
 ## Design target
 Four attack buttons plus block, as decided: Light, Medium, Heavy, Special, and hold Block.
 
-**Ruling: crouch and lows come back. Throws, overheads, meter and command motions stay deferred.**
+**Ruling: crouch and lows come back, jump attacks are overheads, and the throw (with the v1 tech rule) is in. Meter and command motions stay deferred.**
 - Why: the clip libraries have crouch idle, crouch walk, crouch attacks and block poses, so the old blocker (no animation) is gone. Standing versus crouch block plus a low gives the basic mix-up for one extra stance state in the sim.
-- Scope: Down held = crouch. Crouch block. Down+Light and Down+Medium are lows; Down+Heavy is a sweep or launcher. Standing attacks are mids. No overheads in G1 to G4.
-- Throw: G4 only, and only for a fighter with a grab clip. Meter/EX and motions: revisit after the G2 playtest.
+- Scope: Down held = crouch. Crouch block. Down+Light and Down+Medium are lows; Down+Heavy is a sweep or launcher. Standing attacks are mids. Jump attacks are overheads (must be blocked standing), so crouch block is not dominant (amended 2026-10-21). No standing overheads in G1 to G4.
+- Throw: in the sim since G1-core, with the v1 tech (TUNING_LOG). Each fighter gets a throw entry once it has a grab clip. Meter/EX and motions: revisit after the G2 playtest.
 - Sim impact: add a crouch stance with its own hurtbox, and a rule that lows must be blocked crouching. The crouch placeholder work already in the working tree is kept.
 
 Keys stay as in `scripts/autoload/controls.gd` (actions light/medium/heavy/special/block).
