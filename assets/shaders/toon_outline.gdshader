@@ -3,8 +3,8 @@ shader_type spatial;
 render_mode unshaded, cull_front, depth_draw_opaque;
 uniform sampler2D albedo_tex : source_color, filter_linear_mipmap, repeat_disable;
 uniform vec4 base_color : source_color = vec4(1.0);
-uniform vec4 line_color : source_color = vec4(0.09, 0.04, 0.07, 1.0);
-uniform float line_mix = 0.25;                // how much of the albedo tints the line
+uniform vec4 line_color : source_color = vec4(0.071, 0.055, 0.078, 1.0);
+uniform float line_mix = 0.0;                 // pure ink: no albedo tint (a tint reads as a brown halo)
 uniform float width = 0.0075;                 // world units
 uniform float alpha_cut = 0.5;
 uniform bool use_cut = false;

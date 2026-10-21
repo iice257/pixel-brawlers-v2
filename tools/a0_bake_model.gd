@@ -89,8 +89,8 @@ func _toonify(mi: MeshInstance3D) -> void:
 			o.set_shader_parameter("base_color", old.get_shader_parameter("_Color"))
 			o.set_shader_parameter("use_cut", kind != "opaque")
 			var ow: Dictionary = look.get("outline_width", {})
-			o.set_shader_parameter("width", ow.get("hair", 0.03) if "HAIR" in mat_name else (ow.get("skin", 0.024) if skin else ow.get("cloth", 0.026)))
-			o.set_shader_parameter("line_color", _col("outline_color", Color(0.09, 0.04, 0.07)))
+			o.set_shader_parameter("width", ow.get("hair", 0.026) if "HAIR" in mat_name else (ow.get("skin", 0.02) if skin else ow.get("cloth", 0.022)))
+			o.set_shader_parameter("line_color", _col("outline_color", Color("120e14")))
 			m.next_pass = o
 		mi.set_surface_override_material(s, m)
 
