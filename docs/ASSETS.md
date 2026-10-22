@@ -38,6 +38,8 @@ Pick at G1. Candidate sources, all CC0 unless noted, to be checked at the time o
 | F10 | Music: CC0 or CC-BY orchestral/steampunk/industrial loops from OpenGameArt and Pixabay Music (credited); chosen in G2/G3 | opengameart.org, pixabay.com/music | CC0 / CC-BY / Pixabay licence |
 | F11 | Fonts: Bangers (Latin comic), Dela Gothic One and Noto Sans JP Black (katakana onomatopoeia), Cinzel or a similar engraved face for the logo-adjacent UI | Google Fonts | OFL |
 
+**In use (2026-10-22):** F8 and F9 are imported. `assets/audio/sfx` (Impact Sounds: punch, plate, metal, bell, soft; 5 variants each), `assets/audio/voice` (Voiceover Pack: round_1-3, final_round, fight, winner, flawless_victory), `assets/audio/ui` (Interface Sounds), licences beside them. `data/audio.json` maps ids to layers, pitch ranges and buses (SFX, Voice, UI). Gaps: the packs have no whoosh and no "K.O." call, so the whoosh stays a small synth and the K.O. is impact layers only. Kenney originals live outside the repo in `C:\Users\0\Downloads\redline-dl\kenney`.
+
 ### Generated (ours)
 Logo, key art, concept sheets, portraits, airship backdrop, HUD kit and onomatopoeia sheet: `docs/ART_PROMPTS.md`.
 
