@@ -3,10 +3,14 @@ extends RefCounted
 ## Placeholder HUD look in one Theme: health bars (ProgressBar), the round timer and banner (Label variations), the info line.
 ## Controls pick a look with theme_type_variation, so changing the art later means editing only this file.
 const GOLD := Color("ffcf33")
-const RED := Color("ff4a4a")
+const RED := Color("e3262f")          # REDLINE brand red
+const BRASS := Color("c9a14a")
 const INK := Color("0a0614")
 const CREAM := Color("fff0a0")
+const STEAM := Color("efe6d2")
 const DIM := Color("8a80b0")
+const FRAME_DIR := "res://assets/ui/"   # drop <name>.png here (button_normal, button_focus) and it replaces the flat style, no code change
+const FRAME_MARGIN := 24                # 9-slice margin for those textures
 
 static func _box(c: Color, border := 0) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
@@ -14,6 +18,25 @@ static func _box(c: Color, border := 0) -> StyleBoxFlat:
 	s.set_border_width_all(border)
 	s.border_color = INK
 	s.set_content_margin_all(border)
+	return s
+
+## Flat style for a control state, or a 9-slice texture box when assets/ui/<name>.png exists.
+static func _frame(name: String, flat: StyleBox) -> StyleBox:
+	var path := FRAME_DIR + name + ".png"
+	if ResourceLoader.exists(path):
+		var tb := StyleBoxTexture.new()
+		tb.texture = load(path)
+		tb.set_texture_margin_all(FRAME_MARGIN); tb.set_content_margin_all(14)
+		return tb
+	return flat
+
+## Brass plate with ink outline; the focused one gets a thick red bar on the left and a bright face.
+static func _plate(face: Color, bar_w := 0) -> StyleBoxFlat:
+	var s := _box(face, 3)
+	s.border_width_left = 3 + bar_w
+	s.set_corner_radius_all(2)
+	s.set_content_margin_all(14)
+	s.content_margin_left = 22
 	return s
 
 static func build() -> Theme:
@@ -33,13 +56,13 @@ static func build() -> Theme:
 	t.set_font_size("font_size", "HudBanner", 120)
 	t.set_font("font", "HudBanner", load("res://assets/fonts/Bangers-Regular.ttf"))   # OFL display face, see docs/ASSETS.md
 	t.set_font("font", "HudTimer", load("res://assets/fonts/Bangers-Regular.ttf"))
-	var btn := _box(GOLD, 3)
-	btn.set_corner_radius_all(2); btn.set_content_margin_all(14)
-	t.set_stylebox("normal", "Button", btn)
-	var hov := btn.duplicate() as StyleBoxFlat; hov.bg_color = CREAM
-	t.set_stylebox("hover", "Button", hov)
-	t.set_stylebox("pressed", "Button", hov)
-	t.set_stylebox("focus", "Button", hov)
+	var plain := _plate(BRASS)
+	var lit := _plate(STEAM, 10)
+	lit.border_color = RED
+	t.set_stylebox("normal", "Button", _frame("button_normal", plain))
+	for st in ["hover", "pressed", "focus"]: t.set_stylebox(st, "Button", _frame("button_focus", lit))
+	t.set_stylebox("disabled", "Button", _frame("button_normal", plain))
 	for c in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]: t.set_color(c, "Button", INK)
-	t.set_font_size("font_size", "Button", 26)
+	t.set_font("font", "Button", load("res://assets/fonts/Bangers-Regular.ttf"))
+	t.set_font_size("font_size", "Button", 38)
 	return t

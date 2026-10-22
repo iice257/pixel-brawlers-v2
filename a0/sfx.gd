@@ -1,48 +1,64 @@
 class_name Sfx
 extends RefCounted
-## Placeholder fight sounds, synthesised at start (no files): swish, light / heavy hit, block, KO boom. A real set replaces
-## these through the same ids (data/audio.json, later); until then they keep the hits from being silent.
+## Fight audio from data/audio.json: each id is a bus plus layers, a layer picks a random variant with a pitch range and a gain.
+## Layered hits (light / medium / heavy), block, K.O., announcer and UI all come from the Kenney CC0 packs (docs/ASSETS.md F8, F9).
+## The one synthesised sound left is the attack whoosh: the packs have no swish.
 
+const PATH := "res://data/audio.json"
+const BUSES := ["SFX", "Voice", "UI"]
 const RATE := 22050
+static var _doc := {}
 static var _cache := {}
 
-static func get_stream(kind: String) -> AudioStreamWAV:
-	if not _cache.has(kind): _cache[kind] = _make(kind)
-	return _cache[kind]
+static func doc() -> Dictionary:
+	if _doc.is_empty(): _doc = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+	return _doc
 
-static func _make(kind: String) -> AudioStreamWAV:
+## Creates the SFX / Voice / UI buses under Master once (idempotent) and sets their default levels.
+static func ensure_buses() -> void:
+	for b in BUSES:
+		if AudioServer.get_bus_index(b) >= 0: continue
+		AudioServer.add_bus()
+		var i := AudioServer.get_bus_count() - 1
+		AudioServer.set_bus_name(i, b); AudioServer.set_bus_send(i, "Master")
+		AudioServer.set_bus_volume_db(i, {"SFX": 0.0, "Voice": 2.0, "UI": -2.0}[b])
+
+static func stream(path: String) -> AudioStream:
+	if not _cache.has(path): _cache[path] = load(path)
+	return _cache[path]
+
+static func whoosh() -> AudioStreamWAV:
+	if _cache.has("whoosh"): return _cache["whoosh"]
 	var rng := RandomNumberGenerator.new(); rng.seed = 7
-	var len_s := 0.14; var tone := 0.0; var noise := 0.0; var vol := 0.8; var sweep := false; var decay := 22.0
-	match kind:
-		"whoosh": len_s = 0.18; noise = 1.0; sweep = true; vol = 0.35; decay = 0.0
-		"hit_l": len_s = 0.11; tone = 150.0; noise = 0.7; vol = 0.85; decay = 30.0
-		"hit_h": len_s = 0.2; tone = 70.0; noise = 0.8; vol = 1.0; decay = 17.0
-		"block": len_s = 0.07; tone = 520.0; noise = 0.4; vol = 0.6; decay = 55.0
-		"ko": len_s = 0.7; tone = 48.0; noise = 0.5; vol = 1.0; decay = 5.5
-	var n := int(len_s * RATE)
+	var n := int(0.18 * RATE)
 	var data := PackedByteArray(); data.resize(n * 2)
 	var lp := 0.0
 	for i in n:
-		var t := float(i) / RATE
-		var env := exp(-decay * t) if decay > 0.0 else sin(PI * float(i) / n)
-		var nz := rng.randf_range(-1.0, 1.0)
-		if sweep:
-			var k := lerpf(0.08, 0.5, sin(PI * float(i) / n))      # the filter opens then closes: a swish
-			lp += (nz - lp) * k; nz = lp * 2.2
-		var s := (nz * noise + sin(TAU * tone * t * (1.0 - 0.35 * t / len_s)) * (1.0 if tone > 0.0 else 0.0)) * env * vol
-		data.encode_s16(i * 2, int(clampf(s, -1.0, 1.0) * 30000.0))
+		var k := lerpf(0.08, 0.5, sin(PI * float(i) / n))      # the filter opens then closes: a swish
+		lp += (rng.randf_range(-1.0, 1.0) - lp) * k
+		data.encode_s16(i * 2, int(clampf(lp * 2.2 * sin(PI * float(i) / n) * 0.35, -1.0, 1.0) * 30000.0))
 	var w := AudioStreamWAV.new()
 	w.format = AudioStreamWAV.FORMAT_16_BITS; w.mix_rate = RATE; w.stereo = false; w.data = data
+	_cache["whoosh"] = w
 	return w
 
-## Small round-robin pool so overlapping hits don't cut each other off.
+## Round-robin pool of players so overlapping hits and layers don't cut each other off.
 class Pool extends Node:
 	var players: Array[AudioStreamPlayer] = []
 	var next := 0
-	func _init(count := 6) -> void:
+	func _init(count := 16) -> void:
+		Sfx.ensure_buses()
 		for i in count:
 			var p := AudioStreamPlayer.new(); add_child(p); players.append(p)
-	func play(kind: String, pitch := 1.0, db := 0.0) -> void:
+	func _go(st: AudioStream, bus: String, pitch: float, db: float) -> void:
 		var p := players[next]; next = (next + 1) % players.size()
-		p.stream = Sfx.get_stream(kind); p.pitch_scale = pitch; p.volume_db = db
+		p.stream = st; p.bus = bus; p.pitch_scale = pitch; p.volume_db = db
 		p.play()
+	## pitch is a multiplier on each layer's own random pitch; db is added to its gain.
+	func play(id: String, pitch := 1.0, db := 0.0) -> void:
+		var e: Dictionary = Sfx.doc().get(id, {})
+		if e.is_empty(): return
+		if e.has("synth"): _go(Sfx.whoosh(), e.bus, pitch, db); return
+		for layer in e.layers:
+			var f: String = layer.files[randi() % layer.files.size()]
+			_go(Sfx.stream(f), e.bus, randf_range(layer.pitch[0], layer.pitch[1]) * pitch, float(layer.db) + db)

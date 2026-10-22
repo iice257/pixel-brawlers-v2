@@ -31,7 +31,8 @@ var env: Environment
 var sfx: Sfx.Pool
 var sparks: Array = []        # [node, age, life, size]
 var spark_mesh: ArrayMesh
-var rematch: Button
+const NAMES := ["KESTREL", "BRIGGS"]   # roster display names (placeholder rig for both until the characters land)
+var rematch: VBoxContainer
 var ko_k := 0.0               # 0..1 how far into the KO slow-mo (palette shift, zoom)
 var banner_pivot: Node2D
 var help_on := false
@@ -120,9 +121,17 @@ func _build_hud() -> void:
 	hint = _label(root, Vector2(40, 690), "HudHint")
 	hint.text = "P1 %s | F1 help | F2 boxes | F3 debug | R restart" % Controls.describe("p1")
 	hint.visible = false; info.visible = false
-	rematch = Button.new(); rematch.text = "REMATCH  (R / Enter)"
-	rematch.position = Vector2(500, 420); rematch.size = Vector2(280, 64)
-	rematch.pressed.connect(_reset); rematch.hide()
+	rematch = VBoxContainer.new()      # end-of-match menu: Rematch / Quit, keyboard and gamepad focus
+	rematch.position = Vector2(490, 410); rematch.size = Vector2(300, 150)
+	rematch.add_theme_constant_override("separation", 12)
+	for item in [["REMATCH", _reset], ["QUIT", get_tree().quit]]:
+		if item[0] == "QUIT" and OS.has_feature("web"): continue
+		var b := Button.new(); b.text = item[0]; b.focus_mode = Control.FOCUS_ALL
+		b.pressed.connect(func(): sfx.play("ui_confirm"))
+		b.pressed.connect(item[1])
+		b.focus_entered.connect(func(): sfx.play("ui_move"))
+		rematch.add_child(b)
+	rematch.hide()
 	root.add_child(rematch)
 
 func _label(parent: Node, pos: Vector2, variation: String) -> Label:
@@ -137,7 +146,6 @@ func _unhandled_input(e: InputEvent) -> void:
 		elif e.physical_keycode == KEY_F3: info.visible = not info.visible
 		elif e.physical_keycode == KEY_F1 or e.physical_keycode == KEY_ESCAPE: help_on = not help_on; hint.visible = help_on
 		elif e.physical_keycode == KEY_R: _reset()
-		elif e.physical_keycode == KEY_ENTER and match_sim.phase == "over": _reset()
 
 func _read(p: String) -> Dictionary:
 	var i := WorldSim.neutral()
@@ -176,7 +184,9 @@ func _scripted() -> Array:
 
 func _tick(dt: float, inputs: Array) -> void:
 	if p2_hp > 0 and match_sim.phase == "call": match_sim.world.fighters[1].hp = p2_hp   # demo: every round ends fast
+	var before: String = match_sim.phase
 	match_sim.step(inputs)
+	if match_sim.phase != before: _announce()
 	for e in match_sim.world.events:
 		var d: FighterSim = match_sim.world.fighters[e.def] if e.has("def") else null
 		var dir := signf(d.x - match_sim.world.fighters[e.att].x) if d else 0.0
@@ -185,7 +195,7 @@ func _tick(dt: float, inputs: Array) -> void:
 				shake = maxf(shake, clampf(0.02 + float(e.dmg) * 0.0007, 0.02, 0.09) * 0.5)   # half amplitude; the killing blow gets the full "ko" kick
 				if e.heavy: nudge = dir * 0.2
 				_spark(d, dir, 0.55 if e.heavy else 0.36, Color("fff3c0") if e.heavy else Color("ffd35a"), e.get("level", "mid"))
-				sfx.play("hit_h" if e.heavy else "hit_l")
+				sfx.play("hit_h" if e.heavy else "hit_l" if int(e.dmg) < 55 else "hit_m")
 			"throw":
 				shake = maxf(shake, 0.07); nudge = dir * 0.25
 				_spark(d, dir, 0.6, Color("fff3c0"), "mid"); sfx.play("hit_h", 0.85)
@@ -262,8 +272,17 @@ func _hud() -> void:
 	var pop := 1.0
 	if match_sim.phase in ["ko", "timeup", "call", "fight", "over"] and match_sim.pt < 4: pop = 1.0 + 1.1 * (1.0 - match_sim.pt / 4.0)   # 4-frame punch-in
 	banner_pivot.scale = Vector2(pop, pop)
-	rematch.visible = match_sim.phase == "over"
+	var over: bool = match_sim.phase == "over"
+	if over and not rematch.visible: rematch.get_child(0).grab_focus()
+	rematch.visible = over
 	info.text = "P1 %s | P2 %s | combo %d | %d fps | %s | %d draws" % [fs[0].anim(), fs[1].anim(), fs[1].combo_hits, Engine.get_frames_per_second(), RenderingServer.get_current_rendering_method(), RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)]
+
+## Announcer line on each phase change: ROUND n, FIGHT!, winner. The pack has no "K.O." call, so the K.O. gets the impact layers only.
+func _announce() -> void:
+	match match_sim.phase:
+		"call": sfx.play("voice_final_round" if match_sim.final_round else "voice_round_%d" % clampi(match_sim.round_no, 1, 3))
+		"fight": sfx.play("voice_fight")
+		"over": sfx.play("voice_perfect" if match_sim.perfect else "voice_winner")
 
 func _banner() -> String:
 	match match_sim.phase:
@@ -271,7 +290,7 @@ func _banner() -> String:
 		"fight": return "FIGHT!"
 		"ko": return "K.O."
 		"timeup": return "TIME UP"
-		"over": return "DRAW" if match_sim.match_winner < 0 else "P%d WINS" % (match_sim.match_winner + 1)
+		"over": return "DRAW" if match_sim.match_winner < 0 else "%s WINS" % NAMES[match_sim.match_winner]
 	return ""
 
 func _draw_boxes() -> void:
