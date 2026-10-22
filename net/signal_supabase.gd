@@ -75,13 +75,16 @@ func poll() -> void:
 			if not _open:
 				_open = true
 				_frame(_topic, "phx_join", { "config": { "broadcast": { "self": false, "ack": false }, "presence": { "key": "" }, "private": false } })
-			_beat -= 1.0 / 60.0
+			_beat -= dt
 			if _beat <= 0.0:
 				_beat = HEARTBEAT; _frame("phoenix", "heartbeat", {})
 			while _ws.get_available_packet_count() > 0:
 				_on_text(_ws.get_packet().get_string_from_utf8())
 		WebSocketPeer.STATE_CLOSED:
-			if status != "failed":
+			if status == "failed" or _closing: return
+			if _open and _retries < 5:
+				_retries += 1; _reset_socket(); _retry_in = 1.0
+			else:
 				error = "the signalling connection closed"; status = "failed"
 		_:
 			if _age > 10.0 and not _open and status != "failed":
