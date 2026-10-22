@@ -154,7 +154,9 @@ func present(dt: float, tick: int) -> void:
 		flash = 1.0 if flash_age <= 3 else 0.0
 	elif not f.state in ["hit", "thrown"]:
 		flash_age = 0
-	for mi in meshes: mi.set_instance_shader_parameter("flash", flash)
+	for mi in meshes:
+		mi.set_instance_shader_parameter("flash", flash)
+		mi.set_instance_shader_parameter("facing", float(f.facing))
 
 ## Hit reaction strength 0..1: snaps on in 2 ticks, then eases off over the stun.
 func _hit_k(f: FighterSim) -> float:
