@@ -50,6 +50,8 @@ jobs:
           mkdir -p build/web
           ~/godot/godot --headless --path . --export-release "Web" build/web/index.html
           sed "s/__BUILD_ID__/${GITHUB_SHA::10}/" web/pb.service.worker.js > build/web/pb.service.worker.js
+          cp web/brand.json build/web/brand.json
+          if [ -d web/brand ]; then mkdir -p build/web/brand && cp -r web/brand/. build/web/brand/; fi
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/web

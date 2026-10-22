@@ -4,7 +4,7 @@
 const BUILD = '__BUILD_ID__';
 const CACHE = 'pixel-brawlers-' + BUILD;
 const CRITICAL = ['index.html', 'index.js', 'index.wasm', 'index.pck'];
-const OPTIONAL = ['index.audio.worklet.js', 'index.audio.position.worklet.js', 'index.icon.png', 'index.apple-touch-icon.png', 'index.manifest.json'];
+const OPTIONAL = ['index.audio.worklet.js', 'index.audio.position.worklet.js', 'index.icon.png', 'index.apple-touch-icon.png', 'index.manifest.json', 'brand.json', 'brand/logo.png'];
 
 // The page registers this worker after the game has loaded, so the files are already in the HTTP cache:
 // 'no-cache' revalidates them (a 304, no body) and guarantees the stored copy matches this deploy.
@@ -37,7 +37,7 @@ self.addEventListener('fetch', (event) => {
 	if (request.method !== 'GET') return;
 	const url = new URL(request.url);
 	if (url.origin !== self.location.origin) return;
-	const name = url.pathname.slice(url.pathname.lastIndexOf('/') + 1) || 'index.html';
+	const name = url.pathname.endsWith('brand/logo.png') ? 'brand/logo.png' : (url.pathname.slice(url.pathname.lastIndexOf('/') + 1) || 'index.html');
 	if (!CRITICAL.includes(name) && !OPTIONAL.includes(name)) return;
 	event.respondWith((async () => {
 		const cached = await (await caches.open(CACHE)).match(name);

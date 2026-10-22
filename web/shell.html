@@ -84,6 +84,22 @@ body {
 	color: var(--brass-hi);
 }
 
+.logo {
+	display: none;
+	max-width: min(420px, 62vw);
+	max-height: 26vh;
+	animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.tagline {
+	display: none;
+	margin: 14px 0 0;
+	font-size: 13px;
+	letter-spacing: 0.3em;
+	text-transform: uppercase;
+	color: var(--dim);
+}
+
 .rule {
 	width: min(520px, 70vw);
 	height: 1px;
@@ -150,7 +166,7 @@ body {
 @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(290%); } }
 
 @media (prefers-reduced-motion: reduce) {
-	.mark, .rule, .meter { animation: none; }
+	.mark, .logo, .rule, .meter { animation: none; }
 	#loader { transition: none; }
 	#fill { transition: none; }
 }
@@ -167,7 +183,9 @@ body {
 		</noscript>
 
 		<div id="loader" role="status" aria-live="polite">
-			<h1 class="mark"><span>Pixel</span><span class="second">Brawlers</span></h1>
+			<img class="logo" id="logo" alt="">
+			<h1 class="mark" id="mark"><span>Pixel</span><span class="second">Brawlers</span></h1>
+			<p class="tagline" id="tagline"></p>
 			<div class="rule"></div>
 			<div class="meter">
 				<div class="track indeterminate" id="track"><div id="fill"></div></div>
@@ -195,6 +213,47 @@ const engine = new Engine(GODOT_CONFIG);
 
 	let initializing = true;
 	let shown = false;
+
+	// web/brand.json is optional: name, tagline, logo and colours come from it, the text wordmark is the fallback.
+	const VARS = { soot: '--soot', soot2: '--soot-2', brass: '--brass', brassHi: '--brass-hi', steam: '--steam' };
+	fetch('brand.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).then((brand) => {
+		if (!brand) {
+			return;
+		}
+		const colors = brand.colors || {};
+		for (const key in VARS) {
+			if (/^#[0-9a-f]{3,8}$/i.test(colors[key] || '')) {
+				document.documentElement.style.setProperty(VARS[key], colors[key]);
+			}
+		}
+		const name = Array.isArray(brand.name) ? brand.name.slice(0, 2) : [];
+		if (name.length) {
+			const mark = document.getElementById('mark');
+			mark.textContent = '';
+			name.forEach((word, i) => {
+				const span = document.createElement('span');
+				span.textContent = String(word);
+				if (i === 1) {
+					span.className = 'second';
+				}
+				mark.appendChild(span);
+			});
+			document.title = name.join(' ');
+		}
+		if (brand.tagline) {
+			const tag = document.getElementById('tagline');
+			tag.textContent = String(brand.tagline);
+			tag.style.display = 'block';
+		}
+		if (brand.logo) {
+			const logo = document.getElementById('logo');
+			logo.onload = () => {
+				logo.style.display = 'block';
+				document.getElementById('mark').style.display = 'none';
+			};
+			logo.src = brand.logo;
+		}
+	}).catch(() => {});
 
 	function show() {
 		if (shown) {

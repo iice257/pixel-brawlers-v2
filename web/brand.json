@@ -1,0 +1,12 @@
+{
+	"name": ["Pixel", "Brawlers"],
+	"tagline": "",
+	"logo": "brand/logo.png",
+	"colors": {
+		"soot": "#120e14",
+		"soot2": "#1b1520",
+		"brass": "#b8883a",
+		"brassHi": "#ecc47a",
+		"steam": "#f3e3c0"
+	}
+}
