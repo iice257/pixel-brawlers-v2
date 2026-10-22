@@ -501,6 +501,19 @@ class Select extends Control:
 		for i in Flow.roster().size():
 			var c := Card.new(); c.data = Flow.roster()[i]; c.position = Vector2(290 + i * 360, 190); c.size = Vector2(320, 400); add_child(c); cards.append(c)
 		var hint := flow._label("MOVE  LEFT / RIGHT     CONFIRM  LIGHT / ENTER / A     BACK  BLOCK / ESC / B", 22, Flow.BRASS, 4); hint.position = Vector2(100, 660); add_child(hint)
+		if TouchControls.wanted():
+			hint.text = "TAP A FIGHTER TO PICK, TAP AGAIN TO CONFIRM"
+			var back := flow._button("BACK", func(): flow._goto("menu")); back.custom_minimum_size = Vector2(200, 52); back.position = Vector2(1000, 50); add_child(back)
+
+	## Tap or click a card: the first tap moves P1's cursor there, a tap on the card under the cursor confirms (single-player modes).
+	func _input(e: InputEvent) -> void:
+		if not (e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT) or _age < 0.3 or not cpu_side or locked[0]: return
+		for i in cards.size():
+			if cards[i].get_global_rect().has_point(e.position):
+				if idx[0] == i: locked[0] = true; flow.sfx.play("ui_confirm")
+				else: idx[0] = i; flow.sfx.play("ui_move")
+				get_viewport().set_input_as_handled()
+				return
 
 	func _process(dt: float) -> void:
 		_age += dt
