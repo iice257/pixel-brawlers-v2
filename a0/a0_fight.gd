@@ -34,6 +34,7 @@ var sparks: Array = []        # [node, age, life, size]
 var spark_mesh: ArrayMesh
 const NAMES := ["KESTREL", "BRIGGS"]   # default display names; the front end passes its own through cfg
 const DUMMY := ["stand", "crouch", "block all", "random block"]
+const TRAINING_HINT := "TRAINING | dummy: %s | Tab cycles it | F2 boxes | F4 inputs | Esc pause"
 signal exit(action: String)           # "rematch" | "select" | "menu": the front end decides what comes next
 var cfg := {}                         # set by the front end before the node enters the tree: mode (versus | cpu | training), tier, names, models
 var names: Array = NAMES
@@ -44,6 +45,9 @@ var pause_menu: VBoxContainer
 var dummy_btn: Button
 var _dummy_t := 0
 var _dummy_block := false
+var tools: TrainingTools              # training only: input display (F4) and frame advantage
+var input_label: Label
+var adv_label: Label
 var rematch: VBoxContainer
 var ko_k := 0.0               # 0..1 how far into the KO slow-mo (palette shift, zoom)
 var banner_pivot: Node2D
@@ -159,8 +163,13 @@ func _build_hud() -> void:
 	info = _label(root, Vector2(40, 64), "HudInfo")
 	hint = _label(root, Vector2(40, 690), "HudHint")
 	hint.text = "P1 %s | F1 help | F2 boxes | F3 debug | R restart" % Controls.describe("p1")
-	if cfg.get("mode", "") == "training": hint.text = "TRAINING | dummy: stand | Tab cycles it | F2 boxes | Esc pause"
+	if cfg.get("mode", "") == "training": hint.text = TRAINING_HINT % DUMMY[0]
 	hint.visible = cfg.get("mode", "") == "training"; info.visible = false
+	if cfg.get("mode", "") == "training":
+		tools = TrainingTools.new()
+		input_label = _label(root, Vector2(40, 330), "HudInfo"); input_label.visible = false
+		adv_label = _label(root, Vector2(540, 250), "HudBanner"); adv_label.size = Vector2(200, 80)
+		adv_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; adv_label.add_theme_font_size_override("font_size", 64); adv_label.visible = false
 	rematch = VBoxContainer.new()      # end-of-match menu: Rematch / Quit, keyboard and gamepad focus
 	rematch.position = Vector2(440, 380); rematch.size = Vector2(400, 220)
 	rematch.add_theme_constant_override("separation", 12)
@@ -210,7 +219,7 @@ func _set_pause(on: bool) -> void:
 func _next_dummy() -> void:
 	dummy = (dummy + 1) % DUMMY.size()
 	if dummy_btn: dummy_btn.text = "DUMMY: " + DUMMY[dummy].to_upper()
-	hint.text = "TRAINING | dummy: %s | Tab cycles it | F2 boxes | Esc pause" % DUMMY[dummy]
+	hint.text = TRAINING_HINT % DUMMY[dummy]
 
 ## P2 input: the human, the CPU brain, or the training dummy.
 func _p2_input() -> Dictionary:
@@ -240,6 +249,15 @@ func _training_rules() -> void:
 	for f in match_sim.world.fighters:
 		if f.hp < int(f.stats.hp) * 0.25: f.hp = int(f.stats.hp)
 
+func _training_readouts(p1_in: Dictionary) -> void:
+	tools.record_input(p1_in)
+	tools.update(match_sim.world.fighters, match_sim.world.tick)
+	if input_label.visible: input_label.text = "INPUTS\n" + tools.input_lines()
+	adv_label.visible = tools.adv_left > 0
+	if adv_label.visible:
+		adv_label.text = tools.adv_text
+		adv_label.modulate = Color("7dff9a") if tools.adv_positive() else Color("ff6a5a")
+
 func _label(parent: Node, pos: Vector2, variation: String) -> Label:
 	var l := Label.new(); l.position = pos
 	l.theme_type_variation = variation
@@ -252,6 +270,7 @@ func _unhandled_input(e: InputEvent) -> void:
 	if e is InputEventKey and e.pressed and not e.echo:
 		if e.physical_keycode == KEY_F2: show_boxes = not show_boxes
 		elif e.physical_keycode == KEY_F3: info.visible = not info.visible
+		elif e.physical_keycode == KEY_F4 and input_label: input_label.visible = not input_label.visible
 		elif e.physical_keycode == KEY_F1: help_on = not help_on; hint.visible = help_on
 		elif e.physical_keycode == KEY_TAB and cfg.get("mode", "") == "training": _next_dummy()
 		elif e.physical_keycode == KEY_R: _reset()
@@ -318,6 +337,7 @@ func _present(dt: float, before: String, events: Array) -> void:
 		var dir := signf(d.x - match_sim.world.fighters[e.att].x) if d else 0.0
 		match e.type:
 			"hit":
+				if tools: tools.on_contact(int(e.att), int(e.def))
 				shake = maxf(shake, clampf(0.02 + float(e.dmg) * 0.0007, 0.02, 0.09) * 0.5)   # half amplitude; the killing blow gets the full "ko" kick
 				if e.heavy: nudge = dir * 0.2
 				_spark(d, dir, 0.55 if e.heavy else 0.36, Color("fff3c0") if e.heavy else Color("ffd35a"), e.get("level", "mid"), "hit_h" if e.heavy else "hit_l" if int(e.dmg) < 55 else "hit_m")
@@ -329,6 +349,7 @@ func _present(dt: float, before: String, events: Array) -> void:
 			"grab": sfx.play("block", 0.7)
 			"tech": shake = maxf(shake, 0.03); sfx.play("block", 1.3)
 			"block":
+				if tools: tools.on_contact(int(e.att), int(e.def))
 				shake = maxf(shake, 0.012)
 				_spark(d, dir, 0.18, Color("9fd0ff"), "mid", "block"); sfx.play("block")
 			"ko":
@@ -384,6 +405,7 @@ func _physics_process(dt: float) -> void:
 		return
 	var p1_in: Dictionary = cpu1.think(match_sim.world.fighters) if cpu1 and match_sim.inputs_live() else _read("p1")
 	_tick(dt, _scripted() if script_mode else [p1_in, _p2_input()])
+	if tools: _training_readouts(p1_in)
 	_cam_follow(false)
 	_hud()
 	_draw_boxes()
