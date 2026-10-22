@@ -55,10 +55,10 @@ func _menu() -> void:
 
 func _transport(host: bool, code := "") -> NetTransport:
 	if OS.has_feature("web"):
-		var url := NetConfig.signal_url()
-		if url == "":
+		var chan := NetConfig.make_signal(host)
+		if chan == null:
 			_fail("NO SIGNALLING SERVER SET FOR THIS BUILD"); return null
-		var r := RtcTransport.new(url)
+		var r := RtcTransport.new(chan)
 		if host: r.host()
 		else: r.join(code)
 		_rtc = r

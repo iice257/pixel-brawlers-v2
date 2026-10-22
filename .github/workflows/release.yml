@@ -1,4 +1,4 @@
-name: Windows build to Releases
+name: Windows and Android builds to Releases
 
 on:
   push:
@@ -16,7 +16,7 @@ env:
   GODOT_VERSION: 4.7.2
 
 jobs:
-  windows:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -46,9 +46,34 @@ jobs:
           mkdir -p build/windows
           ~/godot/godot --headless --path . --export-release "Windows Desktop" build/windows/Redline.exe
           cd build/windows && zip -q ../Redline-windows.zip Redline.exe
+      - name: Android SDK, debug keystore, editor settings
+        run: |
+          SDK="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          JAVA="${JAVA_HOME_17_X64:-$JAVA_HOME}"
+          yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$SDK/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "build-tools;35.0.1" "platforms;android-35" "cmdline-tools;latest" > /dev/null
+          mkdir -p ~/.android build/android
+          "$JAVA/bin/keytool" -genkeypair -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          mkdir -p ~/.config/godot
+          for f in editor_settings-4.tres editor_settings-4.7.tres; do
+            cat > ~/.config/godot/$f <<EOS
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/java_sdk_path = "$JAVA"
+          export/android/android_sdk_path = "$SDK"
+          export/android/debug_keystore = "$HOME/.android/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOS
+          done
+      - name: Export Android (debug APK, arm64)
+        run: |
+          ~/godot/godot --headless --path . --export-debug "Android" build/android/Redline-android-debug.apk
+          ls -l build/android/Redline-android-debug.apk
       - name: Publish to the "latest" release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --cleanup-tag --yes || true
-          gh release create latest build/Redline-windows.zip --title "REDLINE (latest main, Windows)" --notes "Automatic Windows build of ${GITHUB_SHA::10}. Unzip and run Redline.exe. Controls: WASD move, U/I/J/K attacks, Space block, O throw, F1 help." --prerelease
+          gh release create latest build/Redline-windows.zip build/android/Redline-android-debug.apk --title "REDLINE (latest main)" --notes "Automatic build of ${GITHUB_SHA::10}. Windows: unzip and run Redline.exe. Android: install Redline-android-debug.apk (allow installs from this source). Controls: WASD move, U/I/J/K attacks, Space block, O throw, F1 help." --prerelease

@@ -12,12 +12,15 @@ rather than predict further), redundant input packets, and a state checksum exch
 
 The host is player 1, the guest player 2; the host's fighter pick, stage and RNG seed are sent in the handshake. Pause is an overlay only (the match keeps running).
 
-### Signalling relay (web only)
+### Signalling (web only)
 
-`python tools/signal_server.py [port]` is a stdlib-only relay (rooms live 15 minutes, carries only connection setup). Browsers need an HTTPS host for it.
-Point a build at it with, in order of precedence: `--signal=<url>`, `?signal=<url>` in the page address, `[online] signal_url` in `user://settings.cfg`,
-or `signal_url` in `data/net.json`. Until one is set the web build shows "no signalling server" on HOST / JOIN. Desktop WebRTC would need the
-webrtc-native extension, so desktop and Android use UDP instead.
+Browsers swap WebRTC setup messages through a signalling backend chosen in `data/net.json` (`net/net_config.gd`):
+
+- `{"signal_type": "http", "signal_url": "https://..."}`: `python tools/signal_server.py [port]`, a stdlib-only relay (rooms live 15 minutes). Needs an HTTPS host for phones.
+- `{"signal_type": "supabase", "url": "https://<project>.supabase.co", "anon_key": "<anon public key>"}`: a Supabase Realtime broadcast channel `redline-<ROOM>`, no server code (free tier is enough, broadcast needs no tables).
+
+`--signal=<url>`, `?signal=<url>` or `[online] signal_url` in `user://settings.cfg` override the file with an HTTP relay. With nothing configured the web build says "no signalling server".
+Desktop WebRTC would need the webrtc-native extension (deferred), so desktop and Android use UDP.
 
 ### Testing
 
@@ -33,7 +36,7 @@ Force them with `?touch=1` in the web build or `--touch` on desktop (the mouse t
 
 ### Android APK
 
-An `Android` preset is in `export_presets.cfg` (arm64, debug keystore, no Gradle). To build: install a JDK 17, the Android SDK (platform-tools, build-tools, platform 34),
-set `export/android/java_sdk_path`, `android_sdk_path` and a debug keystore in Godot's editor settings, install the 4.7.2 export templates, then:
-
-    godot --headless --path . --export-debug "Android" build/android/redline-debug.apk
+An `Android` preset is in `export_presets.cfg` (arm64, debug keystore, prebuilt template, no Gradle). `.github/workflows/release.yml` builds it with the runner's JDK and Android SDK
+and publishes `Redline-android-debug.apk` next to the Windows zip on the `latest` release: install it from there on the phone (allow installs from the browser/Files app).
+Local build needs a JDK 17, the Android SDK, the 4.7.2 export templates and a debug keystore set in Godot's editor settings, then
+`godot --headless --path . --export-debug "Android" build/android/Redline-android-debug.apk`.

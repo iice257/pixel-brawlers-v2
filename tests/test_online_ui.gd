@@ -51,3 +51,18 @@ func test_hosting_from_the_menu_starts_an_online_fight() -> void:
 		assert_eq(f.fight.cfg.mode, "online")
 		assert_eq(String(f.fight.cfg.fighters[1]), "briggs", "host sees the guest's pick")
 	guest.close()
+
+func test_supabase_channel_routes_broadcasts_to_the_right_role() -> void:
+	var host := SignalSupabase.new("https://x.supabase.co", "k", true)
+	host._topic = "realtime:redline-ABCD"
+	host._on_text(JSON.stringify({ "topic": "realtime:redline-ABCD", "event": "phx_reply", "payload": { "status": "ok" }, "ref": "1" }))
+	assert_eq(host.status, "ready")
+	host._on_text(JSON.stringify({ "topic": "realtime:redline-ABCD", "event": "broadcast", "payload": { "type": "broadcast", "event": "sig", "payload": { "t": "hello", "to": "host" } } }))
+	host._on_text(JSON.stringify({ "topic": "realtime:redline-ABCD", "event": "broadcast", "payload": { "type": "broadcast", "event": "sig", "payload": { "t": "sdp", "to": "guest" } } }))
+	host._on_text(JSON.stringify({ "topic": "realtime:redline-OTHER", "event": "broadcast", "payload": { "type": "broadcast", "event": "sig", "payload": { "t": "hello", "to": "host" } } }))
+	var got := host.take()
+	assert_eq(got.size(), 1, "only the message addressed to the host on this topic")
+	assert_eq(got[0].t, "hello")
+
+func test_signalling_backend_is_chosen_from_config() -> void:
+	assert_null(NetConfig.make_signal(true), "nothing configured: no signalling")
