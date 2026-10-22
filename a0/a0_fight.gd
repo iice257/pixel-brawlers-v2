@@ -48,6 +48,9 @@ var rematch: VBoxContainer
 var ko_k := 0.0               # 0..1 how far into the KO slow-mo (palette shift, zoom)
 var banner_pivot: Node2D
 var help_on := false
+var demo_on := false
+var cpu1: CpuBrain              # --demo: a second CPU drives P1 (capture takes; --seed=N picks the take)
+var demo_seed := 11
 var p2_hp := 0                # --p2hp=N starts P2 with N hit points (demo recording)
 
 func _ready() -> void:
@@ -70,6 +73,8 @@ func _ready() -> void:
 		elif a.begins_with("--p1="): model_ids[0] = a.trim_prefix("--p1=")
 		elif a.begins_with("--p2="): model_ids[1] = a.trim_prefix("--p2=")
 		elif a.begins_with("--p2hp="): p2_hp = int(a.trim_prefix("--p2hp="))
+		elif a.begins_with("--seed="): demo_seed = int(a.trim_prefix("--seed="))
+		elif a == "--demo": demo_on = true
 	env = Environment.new()
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color("2a1d3e")
@@ -83,7 +88,9 @@ func _ready() -> void:
 	cam = Camera3D.new()
 	cam.fov = 21.0
 	add_child(cam)
-	if cfg.get("mode", "") == "cpu": cpu = CpuBrain.new(int(cfg.get("tier", 4)), 1, int(Time.get_ticks_usec()))
+	if cfg.get("mode", "") == "cpu":
+		cpu = CpuBrain.new(int(cfg.get("tier", 4)), 1, demo_seed if demo_on else int(Time.get_ticks_usec()))
+		if demo_on: cpu1 = CpuBrain.new(int(cfg.get("tier", 4)), 0, demo_seed + 100)
 	_reset()
 	_build_hud()
 	box_mesh = MeshInstance3D.new()
@@ -327,7 +334,8 @@ func _physics_process(dt: float) -> void:
 		return
 	if paused: return
 	if cfg.get("mode", "") == "training": _training_rules()
-	_tick(dt, _scripted() if script_mode else [_read("p1"), _p2_input()])
+	var p1_in: Dictionary = cpu1.think(match_sim.world.fighters) if cpu1 and match_sim.inputs_live() else _read("p1")
+	_tick(dt, _scripted() if script_mode else [p1_in, _p2_input()])
 	_cam_follow(false)
 	_hud()
 	_draw_boxes()
