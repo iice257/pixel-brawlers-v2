@@ -175,6 +175,7 @@ func _scripted() -> Array:
 	return [a, b]
 
 func _tick(dt: float, inputs: Array) -> void:
+	if p2_hp > 0 and match_sim.phase == "call": match_sim.world.fighters[1].hp = p2_hp   # demo: every round ends fast
 	match_sim.step(inputs)
 	for e in match_sim.world.events:
 		var d: FighterSim = match_sim.world.fighters[e.def] if e.has("def") else null
