@@ -16,6 +16,10 @@ var _open := false
 var _joined := false
 var _q: Array = []
 var _age := 0.0
+var _last_ms := 0
+var _closing := false
+var _retries := 0
+var _retry_in := 0.0
 
 func _init(project_url: String, anon_key: String, host: bool) -> void:
 	url = project_url.rstrip("/"); key = anon_key; is_host = host
@@ -30,6 +34,9 @@ func join_room(room: String) -> void:
 
 func _start(room: String) -> void:
 	code = room; _topic = "realtime:redline-" + room
+	_connect()
+
+func _connect() -> void:
 	var ws_url := url.replace("https://", "wss://").replace("http://", "ws://") + "/realtime/v1/websocket?apikey=" + key + "&vsn=1.0.0"
 	if _ws.connect_to_url(ws_url) != OK:
 		error = "could not reach the signalling server"; status = "failed"
@@ -48,9 +55,21 @@ func _flush() -> void:
 	for m in _q: _frame(_topic, "broadcast", { "type": "broadcast", "event": "sig", "payload": m })
 	_q.clear()
 
+## Real elapsed seconds since the last poll: a hidden browser tab stops running frames, and the heartbeat must still fire on the first frame back.
+func _elapsed() -> float:
+	var now := Time.get_ticks_msec()
+	var dt := 0.0 if _last_ms == 0 else float(now - _last_ms) / 1000.0
+	_last_ms = now
+	return dt
+
 func poll() -> void:
+	var dt := _elapsed()
+	if _retry_in > 0.0:
+		_retry_in -= dt
+		if _retry_in <= 0.0: _connect()
+		return
 	_ws.poll()
-	_age += 1.0 / 60.0
+	_age += dt
 	match _ws.get_ready_state():
 		WebSocketPeer.STATE_OPEN:
 			if not _open:
@@ -67,6 +86,10 @@ func poll() -> void:
 		_:
 			if _age > 10.0 and not _open and status != "failed":
 				error = "no connection to the signalling server"; status = "failed"
+
+func _reset_socket() -> void:
+	_ws = WebSocketPeer.new(); _open = false; _joined = false; _beat = HEARTBEAT; _age = 0.0
+	if status == "ready": status = "reserving"
 
 func _on_text(s: String) -> void:
 	var d = JSON.parse_string(s)
@@ -87,4 +110,5 @@ func _on_text(s: String) -> void:
 			error = "the signalling channel closed"; status = "failed"
 
 func close() -> void:
+	_closing = true
 	if _ws.get_ready_state() == WebSocketPeer.STATE_OPEN: _ws.close()
