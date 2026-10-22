@@ -49,6 +49,9 @@ var ko_k := 0.0               # 0..1 how far into the KO slow-mo (palette shift,
 var banner_pivot: Node2D
 var help_on := false
 var demo_on := false
+var stills_dir := ""               # --stills=<dir>: save a frame on big hits (impact flash) for posting
+var _stills := 0
+var _still_tick := -999
 var cpu1: CpuBrain              # --demo: a second CPU drives P1 (capture takes; --seed=N picks the take)
 var demo_seed := 11
 var p2_hp := 0                # --p2hp=N starts P2 with N hit points (demo recording)
@@ -75,6 +78,7 @@ func _ready() -> void:
 		elif a.begins_with("--p2hp="): p2_hp = int(a.trim_prefix("--p2hp="))
 		elif a.begins_with("--seed="): demo_seed = int(a.trim_prefix("--seed="))
 		elif a == "--demo": demo_on = true
+		elif a.begins_with("--stills="): stills_dir = a.trim_prefix("--stills=")
 	env = Environment.new()
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color("2a1d3e")
@@ -284,6 +288,7 @@ func _tick(dt: float, inputs: Array) -> void:
 				if e.heavy: nudge = dir * 0.2
 				_spark(d, dir, 0.55 if e.heavy else 0.36, Color("fff3c0") if e.heavy else Color("ffd35a"), e.get("level", "mid"), "hit_h" if e.heavy else "hit_l" if int(e.dmg) < 55 else "hit_m")
 				sfx.play("hit_h" if e.heavy else "hit_l" if int(e.dmg) < 55 else "hit_m")
+				if stills_dir != "" and (e.heavy or int(e.dmg) >= 60) and match_sim.world.tick - _still_tick > 150: _still_tick = match_sim.world.tick; _save_still()
 			"throw":
 				shake = maxf(shake, 0.07); nudge = dir * 0.25
 				_spark(d, dir, 0.6, Color("fff3c0"), "mid", "hit_h"); sfx.play("hit_h", 0.85)
@@ -303,6 +308,11 @@ func _tick(dt: float, inputs: Array) -> void:
 	for v in views: v.present(dt, match_sim.world.tick)
 	_sparks(dt)
 	_ko_look(dt)
+
+func _save_still() -> void:
+	await RenderingServer.frame_post_draw
+	DirAccess.make_dir_recursive_absolute(stills_dir)
+	get_viewport().get_texture().get_image().save_png("%s/hit%02d.png" % [stills_dir, _stills]); _stills += 1
 
 func _physics_process(dt: float) -> void:
 	if _done: return

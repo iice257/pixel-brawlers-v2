@@ -10,6 +10,13 @@ const BRASS := Color(0.86, 0.6, 0.24)
 const LEATHER := Color(0.3, 0.17, 0.12)
 const GLASS := Color(0.3, 0.85, 0.85)
 const DARK := Color(0.16, 0.14, 0.17)
+const STEEL := Color(0.5, 0.52, 0.58)
+const COAT := Color(0.12, 0.5, 0.5)
+const COAT_TRIM := Color(0.07, 0.2, 0.24)
+const VENT_RED := Color(3.2, 0.3, 0.12)        # HDR: reads as a glowing vent
+const VENT_TEAL := Color(0.3, 2.6, 2.3)
+const STACHE := Color(0.2, 0.1, 0.06)
+const APRON := Color(0.2, 0.11, 0.08)
 
 func _mat(c: Color, width := 0.012) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
@@ -43,6 +50,30 @@ func _cyl(r: float, h: float, segs := 16) -> CylinderMesh:
 	var c := CylinderMesh.new(); c.top_radius = r; c.bottom_radius = r; c.height = h; c.radial_segments = segs; c.rings = 1
 	return c
 
+## A box with a different width at the top and bottom, and a bottom that sits `flare` further along +Z than the top (coat tails, aprons).
+## Hung from y = +h/2 (top) to y = -h/2 (bottom); built as flat-shaded quads wound the way Godot expects (front faces clockwise).
+func _panel(wt: float, wb: float, h: float, t: float, flare := 0.0) -> ArrayMesh:
+	var c: Array = []
+	for yy in [h / 2.0, -h / 2.0]:
+		var w: float = wt if yy > 0.0 else wb
+		var z0: float = 0.0 if yy > 0.0 else flare
+		for sx in [-1.0, 1.0]:
+			for sz in [-1.0, 1.0]: c.append(Vector3(sx * w / 2.0, yy, sz * t / 2.0 + z0))
+	# corner index = yi * 4 + xi * 2 + zi ; faces as [a, b, c, d]
+	var faces := [[0, 1, 3, 2], [4, 6, 7, 5], [0, 4, 5, 1], [2, 3, 7, 6], [0, 2, 6, 4], [1, 5, 7, 3]]
+	var centre := Vector3(0, 0, flare / 2.0)
+	var st := SurfaceTool.new(); st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for f in faces:
+		var a: Vector3 = c[f[0]]; var b: Vector3 = c[f[1]]; var cc: Vector3 = c[f[2]]; var d: Vector3 = c[f[3]]
+		var mid := (a + b + cc + d) / 4.0
+		var n := (b - a).cross(cc - a).normalized()
+		var order := [a, b, cc, a, cc, d]
+		if n.dot(mid - centre) > 0.0:                 # Godot front faces are clockwise: flip so the winding faces outwards
+			order = [a, cc, b, a, d, cc]; n = -n
+		for v in order:
+			st.set_normal(n); st.set_uv(Vector2(0.5, 0.5)); st.add_vertex(v)
+	return st.commit()
+
 func _gear(parent: Node3D, pos: Vector3, rot: Vector3, r: float, thick: float, teeth: int) -> void:
 	var g := Node3D.new(); g.position = pos; g.rotation_degrees = rot
 	parent.add_child(g)
@@ -68,7 +99,10 @@ func _merge(root: Node3D) -> Node3D:
 		for v in a[Mesh.ARRAY_VERTEX]: verts.append(xf * v); cols.append(c)
 		for nn in a[Mesh.ARRAY_NORMAL]: norms.append((xf.basis * nn).normalized())
 		uvs.append_array(PackedVector2Array(a[Mesh.ARRAY_TEX_UV]) if a[Mesh.ARRAY_TEX_UV] != null else PackedVector2Array())
-		for i in a[Mesh.ARRAY_INDEX]: idx.append(off + i)
+		if a[Mesh.ARRAY_INDEX] != null:
+			for i in a[Mesh.ARRAY_INDEX]: idx.append(off + i)
+		else:                                           # SurfaceTool meshes are not indexed
+			for i in (a[Mesh.ARRAY_VERTEX] as PackedVector3Array).size(): idx.append(off + i)
 	var arrays := []; arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = verts; arrays[Mesh.ARRAY_NORMAL] = norms; arrays[Mesh.ARRAY_COLOR] = cols
 	arrays[Mesh.ARRAY_TEX_UV] = uvs; arrays[Mesh.ARRAY_INDEX] = idx
@@ -119,4 +153,75 @@ func _init() -> void:
 	var pouch := BoxMesh.new(); pouch.size = Vector3(0.05, 0.06, 0.04)
 	_add(be, pouch, LEATHER, Vector3(0.16, -0.01, 0.02))
 	_save(be, "belt")
+	_new_props()
 	quit()
+
+## Signature placeholder silhouettes (accessory slot): BRIGGS' hydraulic fist, apron, boots, moustache; KESTREL's coat tails and piston gauntlets.
+func _new_props() -> void:
+	# vertex colours are read as linear: convert the authored (sRGB-looking) colours so dark leather stays dark
+	var L_DARK := Color(0.16, 0.14, 0.17).srgb_to_linear()
+	var L_LEATHER := Color(0.42, 0.25, 0.16).srgb_to_linear()
+	var L_STACHE := Color(0.24, 0.13, 0.08).srgb_to_linear()
+	var L_APRON := Color(0.5, 0.3, 0.16).srgb_to_linear()
+	var L_COAT := Color(0.17, 0.78, 0.72).srgb_to_linear()
+	var L_COAT_TRIM := Color(0.06, 0.22, 0.28).srgb_to_linear()
+	# big gauntlet: forearm axis +X (mirrored with scale.x = -1 for the right arm); about 1.6x the standard gauntlet, piston rods on top, glowing red vent
+	var bg := Node3D.new(); bg.name = "BigGauntlet"
+	_add(bg, _cyl(0.088, 0.22), BRASS, Vector3(0.1, 0, 0), Vector3(0, 0, 90))
+	_add(bg, _cyl(0.098, 0.04), L_DARK, Vector3(-0.02, 0, 0), Vector3(0, 0, 90))
+	_add(bg, _cyl(0.098, 0.04), L_DARK, Vector3(0.21, 0, 0), Vector3(0, 0, 90))
+	var fist := BoxMesh.new(); fist.size = Vector3(0.17, 0.17, 0.17)
+	_add(bg, fist, L_DARK, Vector3(0.32, 0, 0))
+	var knuck := BoxMesh.new(); knuck.size = Vector3(0.05, 0.14, 0.15)
+	_add(bg, knuck, BRASS, Vector3(0.425, 0, 0))
+	for sz in [-0.045, 0.045]:
+		_add(bg, _cyl(0.014, 0.28), STEEL, Vector3(0.18, 0.115, sz), Vector3(0, 0, 90))
+		_add(bg, _cyl(0.026, 0.11), L_DARK, Vector3(0.05, 0.115, sz), Vector3(0, 0, 90))
+	var vent := BoxMesh.new(); vent.size = Vector3(0.07, 0.026, 0.085)
+	_add(bg, vent, VENT_RED, Vector3(0.14, 0.1, 0))
+	_add(bg, vent, VENT_RED, Vector3(0.24, 0.1, 0))
+	_gear(bg, Vector3(0.1, 0.0, 0.09), Vector3(90, 0, 0), 0.04, 0.02, 8)
+	_save(bg, "big_gauntlet")
+	# piston gauntlet (both KESTREL forearms): the standard cuff plus two piston rods and a small teal vent
+	var pg := Node3D.new(); pg.name = "PistonGauntlet"
+	_add(pg, _cyl(0.056, 0.17), BRASS, Vector3(0.02, 0, 0), Vector3(0, 0, 90))
+	_add(pg, _cyl(0.062, 0.03), L_DARK, Vector3(-0.07, 0, 0), Vector3(0, 0, 90))
+	_add(pg, _torus(0.054, 0.068), L_LEATHER, Vector3(0.1, 0, 0), Vector3(0, 0, 90))
+	for sz in [-0.03, 0.03]:
+		_add(pg, _cyl(0.01, 0.2), STEEL, Vector3(0.04, 0.072, sz), Vector3(0, 0, 90))
+		_add(pg, _cyl(0.017, 0.07), L_DARK, Vector3(-0.03, 0.072, sz), Vector3(0, 0, 90))
+	var pv := BoxMesh.new(); pv.size = Vector3(0.05, 0.018, 0.04)
+	_add(pg, pv, VENT_TEAL, Vector3(0.05, 0.066, 0))
+	_gear(pg, Vector3(0.0, 0.0, 0.06), Vector3(90, 0, 0), 0.028, 0.016, 8)
+	_save(pg, "piston_gauntlet")
+	# apron: leather panel from the chest to the knee, with a pocket and rivets (hung from the hips, front is +Z)
+	var ap := Node3D.new(); ap.name = "Apron"
+	_add(ap, _panel(0.26, 0.34, 0.66, 0.03, 0.02), L_APRON, Vector3(0, 0, 0))
+	_add(ap, _panel(0.2, 0.2, 0.16, 0.02), L_LEATHER, Vector3(0, -0.14, 0.05))
+	_add(ap, _panel(0.3, 0.3, 0.05, 0.034), L_DARK, Vector3(0, 0.3, 0.0))
+	for sx in [-0.09, 0.09]: _add(ap, _cyl(0.014, 0.01), BRASS, Vector3(sx, 0.1, 0.022), Vector3(90, 0, 0))
+	_save(ap, "apron")
+	# heavy boots: enlarged foot caps with a brass toe and an ankle cuff (foot axis +Z)
+	var bo := Node3D.new(); bo.name = "Boot"
+	var cap := BoxMesh.new(); cap.size = Vector3(0.115, 0.1, 0.25)
+	_add(bo, cap, L_DARK, Vector3(0, 0.0, 0.03))
+	var toe := BoxMesh.new(); toe.size = Vector3(0.13, 0.07, 0.07)
+	_add(bo, toe, BRASS, Vector3(0, -0.01, 0.15))
+	_add(bo, _cyl(0.075, 0.09), L_LEATHER, Vector3(0, 0.08, -0.03))
+	_save(bo, "boot")
+	# moustache: a wide bar with two upturned tips, in the head frame (front is +Z)
+	var mo := Node3D.new(); mo.name = "Moustache"
+	var bar := BoxMesh.new(); bar.size = Vector3(0.07, 0.022, 0.04)
+	_add(mo, bar, L_STACHE)
+	var tip := BoxMesh.new(); tip.size = Vector3(0.04, 0.018, 0.036)
+	_add(mo, tip, L_STACHE, Vector3(0.05, 0.012, -0.002), Vector3(0, 0, 28))
+	_add(mo, tip, L_STACHE, Vector3(-0.05, 0.012, -0.002), Vector3(0, 0, -28))
+	_save(mo, "moustache")
+	# coat tails: front and back panels from the chest to mid-thigh, teal with a dark hem and brass buttons
+	for side in ["front", "back"]:
+		var ct := Node3D.new(); ct.name = "Coat" + side.capitalize()
+		_add(ct, _panel(0.2, 0.3, 0.5, 0.025, -0.03 if side == "back" else 0.02), L_COAT)
+		_add(ct, _panel(0.31, 0.31, 0.04, 0.03, -0.03 if side == "back" else 0.02), L_COAT_TRIM, Vector3(0, -0.24, 0.0))
+		if side == "front":
+			for i in 3: _add(ct, _cyl(0.014, 0.01), BRASS, Vector3(0, 0.15 - 0.12 * i, 0.016), Vector3(90, 0, 0))
+		_save(ct, "coat_" + side)

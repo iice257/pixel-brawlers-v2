@@ -298,22 +298,8 @@ func _stage() -> Control:
 # ------------------------------------------------------------------ VS splash, fight
 
 func _vs() -> Control:
-	var r := _root()
-	var n0: String = roster()[picks[0]].name; var n1: String = roster()[picks[1]].name
-	var a := _label(n0, 150, roster()[picks[0]].color); var b := _label(n1, 150, roster()[picks[1]].color)
-	a.position = Vector2(-700, 150); b.position = Vector2(1400, 360)
-	b.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; b.size = Vector2(700, 160)
-	var vs := _label("VS", 220, RED, 20); vs.position = Vector2(540, 250); vs.scale = Vector2(3, 3); vs.modulate.a = 0.0; vs.pivot_offset = Vector2(100, 110)
-	for n in [a, b, vs]: r.add_child(n)
-	var tw := r.create_tween().set_parallel()
-	tw.tween_property(a, "position:x", 90.0, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(b, "position:x", 490.0, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(vs, "scale", Vector2.ONE, 0.25).set_delay(0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(vs, "modulate:a", 1.0, 0.1).set_delay(0.3)
-	var timer := Timer.new(); timer.wait_time = 1.7; timer.one_shot = true; timer.autostart = true; r.add_child(timer)
-	timer.timeout.connect(_start_fight)
-	r.set_script(AnyKey)
-	r.on_press = func(): if r.get_meta("age", 0.0) > 0.6: _start_fight()
+	var r := VsSplash.new(); r.flow = self
+	r.a = roster()[picks[0]]; r.b = roster()[picks[1]]
 	return r
 
 func _start_fight() -> void:
@@ -362,6 +348,119 @@ class BgDraw extends Control:
 			var x := fposmod(t * (12.0 + 5 * k) + k * 370.0, sz.x + 500.0) - 250.0
 			draw_circle(Vector2(x, y), 190.0 + 20.0 * k, Color(0.94, 0.72, 0.54, 0.035))
 		draw_rect(Rect2(0, sz.y - 6, sz.x, 6), Color("e3262f"))
+
+## VS splash, 1.6 s: portrait slots, both names slam in with a shake, a gauge needle sweeps to the red zone behind the "VS", the announcer slot
+## ("voice_vs") fires as the names land. Portraits come from assets/ui/portraits/<id>.png, else a placeholder silhouette in the fighter's colour.
+class VsSplash extends Control:
+	const TOTAL := 1.6
+	var flow: Flow
+	var a: Dictionary
+	var b: Dictionary
+	var t := 0.0
+	var _names: Array = []
+	var _tags: Array = []
+	var _vs: Label
+	var _sh := Vector2.ZERO
+	var _fired := false
+	var _voiced := false
+	var _slammed := false
+
+	func _ready() -> void:
+		set_anchors_preset(Control.PRESET_FULL_RECT)
+		mouse_filter = Control.MOUSE_FILTER_PASS
+		for side in 2:
+			var d: Dictionary = a if side == 0 else b
+			var n := flow._label(String(d.name), 150, d.color); n.size = Vector2(700, 170)
+			var g := flow._label(String(d.tag), 44, Flow.BRASS, 6); g.size = Vector2(700, 56)
+			for l in [n, g]:
+				l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if side == 0 else HORIZONTAL_ALIGNMENT_RIGHT
+				add_child(l)
+			_names.append(n); _tags.append(g)
+		_vs = flow._label("VS", 230, Flow.RED, 20)
+		_vs.size = Vector2(300, 260); _vs.pivot_offset = Vector2(150, 130); _vs.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		add_child(_vs)
+
+	static func _out(x: float) -> float:
+		x = clampf(x, 0.0, 1.0)
+		return 1.0 - pow(1.0 - x, 3.0)
+
+	static func _jolt(age: float, len: float, amp: float) -> Vector2:
+		if age < 0.0 or age > len: return Vector2.ZERO
+		var k := 1.0 - age / len
+		return Vector2(sin(age * 180.0), cos(age * 143.0)) * amp * k
+
+	func _process(dt: float) -> void:
+		t += dt
+		var land := 0.26
+		var ka := _out(t / land); var kb := _out((t - 0.04) / land)
+		_sh = _jolt(t - land, 0.34, 11.0) + _jolt(t - 0.92, 0.3, 16.0)
+		if t >= 0.3 and not _voiced:
+			_voiced = true
+			if Sfx.doc().has("voice_vs"): flow.sfx.play("voice_vs")      # announcer slot: add a "voice_vs" entry to data/audio.json to light it up
+		if t >= 0.92 and not _slammed: _slammed = true; flow.sfx.play("hit_h", 0.8)
+		var na: Label = _names[0]; var nb: Label = _names[1]
+		na.position = Vector2(lerpf(-780.0, 70.0, ka), 150.0) + _sh
+		nb.position = Vector2(lerpf(1300.0, 510.0, kb), 400.0) + _sh
+		_tags[0].position = na.position + Vector2(6, 150); _tags[1].position = nb.position + Vector2(-6, 150)
+		var vk := _out((t - 0.92) / 0.14)
+		_vs.modulate.a = 1.0 if t >= 0.92 else 0.0
+		_vs.scale = Vector2.ONE * lerpf(3.2, 1.0, vk)
+		_vs.position = Vector2(490, 230) + _sh * 1.4
+		queue_redraw()
+		if t >= TOTAL and not _fired: _fired = true; flow._start_fight()
+
+	func _input(e: InputEvent) -> void:
+		var hit: bool = (e is InputEventKey and e.pressed and not e.echo) or (e is InputEventJoypadButton and e.pressed) or (e is InputEventMouseButton and e.pressed)
+		if hit and t > 0.6 and not _fired: _fired = true; get_viewport().set_input_as_handled(); flow._start_fight()
+
+	func _portrait(d: Dictionary, left: bool, k: float) -> void:
+		var path := "res://assets/ui/portraits/%s.png" % d.id
+		var cx := 320.0 if left else 960.0
+		cx += (1.0 - k) * (-300.0 if left else 300.0)
+		if ResourceLoader.exists(path):
+			var tex: Texture2D = load(path)
+			var h := 600.0; var w := h * tex.get_width() / tex.get_height()
+			draw_texture_rect(tex, Rect2(cx - w / 2.0, size.y - h, w, h), false, Color(1, 1, 1, 0.9))
+			return
+		var c: Color = d.color; c.a = 0.22
+		var pts := PackedVector2Array()
+		for i in 21:                                   # shoulders: a half ellipse
+			var an := PI + PI * i / 20.0
+			pts.append(Vector2(cx + cos(an) * 230.0, 720.0 + sin(an) * 330.0))
+		draw_colored_polygon(pts, c)
+		draw_circle(Vector2(cx, 300.0), 92.0, c)
+		draw_rect(Rect2(cx - 40.0, 380.0, 80.0, 80.0), c)
+
+	func _draw() -> void:
+		var sz := size
+		draw_rect(Rect2(Vector2.ZERO, sz), Color("0b0716"))
+		var ta: Color = a.color; ta.a = 0.16
+		var tb: Color = b.color; tb.a = 0.16
+		draw_colored_polygon(PackedVector2Array([Vector2(0, 0), Vector2(780, 0), Vector2(500, 720), Vector2(0, 720)]), ta)
+		draw_colored_polygon(PackedVector2Array([Vector2(780, 0), Vector2(1280, 0), Vector2(1280, 720), Vector2(500, 720)]), tb)
+		_portrait(a, true, _out(t / 0.5)); _portrait(b, false, _out((t - 0.05) / 0.5))
+		draw_line(Vector2(780, 0) + _sh, Vector2(500, 720) + _sh, Flow.RED, 8.0)
+		# gauge behind the VS: the needle sweeps from the left stop to the red zone, overshoots, settles
+		var c := Vector2(640, 360) + _sh
+		var r := 185.0
+		var a0 := deg_to_rad(150.0); var a1 := deg_to_rad(390.0)
+		draw_arc(c, r, a0, a1, 64, Color(0.94, 0.9, 0.82, 0.18), 16.0)
+		draw_arc(c, r, a0 + (a1 - a0) * 0.78, a1, 24, Color(Flow.RED, 0.85), 16.0)
+		for i in 13:
+			var an: float = a0 + (a1 - a0) * i / 12.0
+			draw_line(c + Vector2.from_angle(an) * (r - 26.0), c + Vector2.from_angle(an) * (r - 8.0), Color(0.94, 0.9, 0.82, 0.5), 3.0)
+		var sweep := clampf((t - 0.1) / 0.8, 0.0, 1.0)
+		var e := 1.0 - pow(1.0 - sweep, 3.0)
+		var over := sin(clampf((t - 0.9) / 0.25, 0.0, 1.0) * PI) * 0.03
+		var na: float = a0 + (a1 - a0) * (e * 0.97 + over)
+		var tip := c + Vector2.from_angle(na) * (r - 14.0)
+		var perp := Vector2.from_angle(na + PI / 2.0) * 7.0
+		draw_colored_polygon(PackedVector2Array([c + perp, tip, c - perp]), Flow.STEAM)
+		draw_circle(c, 15.0, Flow.BRASS); draw_circle(c, 7.0, Color("0a0614"))
+		if t >= 0.92:                                  # needle hits red: pulse ring and a white flash that fades
+			draw_arc(c, r + 10.0 + (t - 0.92) * 160.0, 0.0, TAU, 64, Color(Flow.RED, clampf(1.0 - (t - 0.92) * 3.0, 0.0, 1.0)), 6.0)
+			draw_rect(Rect2(Vector2.ZERO, sz), Color(1, 1, 1, clampf(0.55 - (t - 0.92) * 4.0, 0.0, 0.55)))
+		draw_rect(Rect2(0, sz.y - 6, sz.x, 6), Flow.RED)
 
 ## Character select: P1 and P2 cursors over portrait cards (placeholder silhouettes until assets/ui/portraits/<id>.png exist).
 class Select extends Control:

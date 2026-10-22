@@ -215,3 +215,21 @@ func test_both_fighters_startup_fields_match_hit_windows() -> void:
 			var d := FrameData.derive(m)
 			assert_eq(int(m.startup), d.startup, "%s %s startup" % [fid, id])
 			assert_eq(int(m.active), d.active, "%s %s active" % [fid, id])
+
+# ---------------------------------------------------------------- placeholder kits
+
+func test_every_accessory_prop_in_the_looks_exists() -> void:
+	for mid in ["a0", "briggs"]:
+		for acc in FighterView.look_of(mid).get("accessories", []):
+			assert_true(ResourceLoader.exists("res://fighters/shared/props/%s.tscn" % acc.prop), "%s: %s" % [mid, acc.prop])
+
+func test_signature_silhouettes() -> void:
+	var props := func(mid: String) -> Array: return FighterView.look_of(mid).accessories.map(func(a): return a.prop)
+	for p in ["big_gauntlet", "apron", "boot", "moustache"]: assert_true(props.call("briggs").has(p), "BRIGGS " + p)
+	for p in ["coat_front", "coat_back", "piston_gauntlet", "goggles", "belt"]: assert_true(props.call("a0").has(p), "KESTREL " + p)
+	assert_eq(props.call("a0").count("piston_gauntlet"), 2, "piston gauntlets on both forearms")
+
+func test_briggs_heavy_box_matches_the_bigger_fist() -> void:
+	var k: Array = FighterSim.load_data("kestrel").moves.H.hits[0].box
+	var b: Array = FighterSim.load_data("briggs").moves.H.hits[0].box
+	assert_gt(int(b[2]) * int(b[3]), int(k[2]) * int(k[3]))

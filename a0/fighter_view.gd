@@ -225,7 +225,7 @@ static func _hide(skel: Skeleton3D, frags: Array) -> void:
 
 ## look.json "colors": {material-name fragment: [r, g, b]} multiplies that material's colour (and its outline pass's), so one baked
 ## body can be dressed in another palette.
-static func _colors(skel: Skeleton3D, cols: Dictionary) -> void:
+static func _colors(skel: Skeleton3D, cols: Dictionary, shades := {}) -> void:
 	for mi in skel.get_children():
 		if not (mi is MeshInstance3D and mi.mesh): continue
 		for i in mi.mesh.get_surface_count():
@@ -237,6 +237,9 @@ static func _colors(skel: Skeleton3D, cols: Dictionary) -> void:
 				var d: ShaderMaterial = mat.duplicate()
 				var base: Color = d.get_shader_parameter("base_color")
 				d.set_shader_parameter("base_color", Color(base.r * c[0], base.g * c[1], base.b * c[2], base.a))
+				if shades.has(key):                      # "shade": darkens the lit-to-shadow ramp of that material
+					var sc: Array = shades[key]; var sh: Color = d.get_shader_parameter("shade_color")
+					d.set_shader_parameter("shade_color", Color(sh.r * sc[0], sh.g * sc[1], sh.b * sc[2], sh.a))
 				mi.set_surface_override_material(i, d)
 
 ## Attaches the accessories listed in fighters/<id>/look.json ("accessories": prop scene, humanoid bone, offset) to the skeleton.
@@ -244,7 +247,7 @@ static func dress(skel: Skeleton3D, model_id: String) -> void:
 	var look := look_of(model_id)
 	if look.is_empty(): return
 	_hide(skel, look.get("hide", []))
-	_colors(skel, look.get("colors", {}))
+	_colors(skel, look.get("colors", {}), look.get("shade", {}))
 	_outfit(skel, look.get("outfit", {}))
 	_textures(skel, look.get("textures", {}))
 	for acc in look.get("accessories", []):
