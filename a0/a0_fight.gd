@@ -11,9 +11,8 @@ var views: Array[FighterView] = []
 var cam: Camera3D
 var info: Label
 var banner: Label
-var timer_label: Label
+var hud: FightHud
 var hint: Label
-var bars: Array[ProgressBar] = []
 var model_ids := ["a0", "a0"]
 var seq_dir := ""
 var seq_every := 3
@@ -94,6 +93,7 @@ func _reset() -> void:
 	sparks.clear()
 	shake = 0.0; nudge = 0.0; ko_k = 0.0
 	if rematch: rematch.hide()
+	if hud: hud.reset_state()
 	_cam_follow(true)
 
 func _build_stage() -> void:
@@ -107,14 +107,8 @@ func _build_hud() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.theme = HudTheme.build()
 	layer.add_child(root)
-	for i in 2:
-		var bar := ProgressBar.new(); bar.show_percentage = false
-		bar.min_value = 0.0; bar.max_value = 1.0; bar.value = 1.0
-		bar.fill_mode = ProgressBar.FILL_BEGIN_TO_END if i == 0 else ProgressBar.FILL_END_TO_BEGIN
-		bar.position = Vector2(40, 28) if i == 0 else Vector2(1280 - 40 - 520, 28); bar.size = Vector2(520, 26)
-		root.add_child(bar); bars.append(bar)
-	timer_label = _label(root, Vector2(600, 20), "HudTimer")
-	timer_label.size = Vector2(80, 50); timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hud = FightHud.new(); hud.names = NAMES; hud.need = match_sim.need; hud.round_seconds = SimConst.ROUND_SECONDS
+	root.add_child(hud)
 	banner_pivot = Node2D.new(); banner_pivot.position = Vector2(640, 190); banner_pivot.skew = -0.16
 	root.add_child(banner_pivot)
 	banner = _label(banner_pivot, Vector2(-640, -60), "HudBanner")
@@ -267,11 +261,8 @@ func _cam_follow(snap: bool) -> void:
 
 func _hud() -> void:
 	var fs := match_sim.world.fighters
-	for i in 2:
-		var pct := clampf(float(fs[i].hp) / float(fs[i].stats.hp), 0.0, 1.0)
-		bars[i].value = pct
-		bars[i].theme_type_variation = "" if pct > 0.3 else "HealthLow"
-	timer_label.text = "%02d" % match_sim.seconds_left()
+	hud.update_state([clampf(float(fs[0].hp) / float(fs[0].stats.hp), 0.0, 1.0), clampf(float(fs[1].hp) / float(fs[1].stats.hp), 0.0, 1.0)],
+		match_sim.seconds_left(), match_sim.wins, [fs[1].combo_hits, fs[0].combo_hits], get_process_delta_time())
 	banner.text = _banner()
 	var pop := 1.0
 	if match_sim.phase in ["ko", "timeup", "call", "fight", "over"] and match_sim.pt < 4: pop = 1.0 + 1.1 * (1.0 - match_sim.pt / 4.0)   # 4-frame punch-in
