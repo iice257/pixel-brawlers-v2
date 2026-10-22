@@ -44,11 +44,11 @@ jobs:
       - name: Export Windows (Forward+, single exe)
         run: |
           mkdir -p build/windows
-          ~/godot/godot --headless --path . --export-release "Windows Desktop" build/windows/PixelBrawlers.exe
-          cd build/windows && zip -q ../PixelBrawlers-windows.zip PixelBrawlers.exe
+          ~/godot/godot --headless --path . --export-release "Windows Desktop" build/windows/Redline.exe
+          cd build/windows && zip -q ../Redline-windows.zip Redline.exe
       - name: Publish to the "latest" release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --cleanup-tag --yes || true
-          gh release create latest build/PixelBrawlers-windows.zip --title "Pixel Brawlers (latest main, Windows)" --notes "Automatic Windows build of ${GITHUB_SHA::10}. Unzip and run PixelBrawlers.exe. Controls: WASD move, U/I/J/K attacks, Space block, O throw, F1 help." --prerelease
+          gh release create latest build/Redline-windows.zip --title "REDLINE (latest main, Windows)" --notes "Automatic Windows build of ${GITHUB_SHA::10}. Unzip and run Redline.exe. Controls: WASD move, U/I/J/K attacks, Space block, O throw, F1 help." --prerelease
