@@ -25,6 +25,7 @@ var lean := 0.0
 var turn := 0.0
 var ground := 0.0
 var flash_age := 0   # ticks of hit-stop shown so far: the white flash lasts the first 3
+var body_scale := 1.0   # look.json "scale": a bigger fighter is the same model drawn larger
 
 ## model_id selects res://fighters/<id>/model.scn (baked by tools/bake_fighter.sh); animations are shared by humanoid bone name.
 func setup(fighter: FighterSim, model_id: String, swap: float) -> void:
@@ -40,11 +41,15 @@ func setup(fighter: FighterSim, model_id: String, swap: float) -> void:
 	if _meta.is_empty():
 		_meta = JSON.parse_string(FileAccess.get_file_as_string("res://fighters/shared/clip_meta.json"))
 	dress(skeleton, model_id)
+	var look := look_of(model_id)
+	body_scale = float(look.get("scale", 1.0))
+	var rim: Array = look.get("rim", [])
+	var rim_col := Color(rim[0], rim[1], rim[2]) if rim.size() >= 3 else (Color("3fe0d0") if fighter.idx == 0 else Color("ffb23a"))
 	for mi in skeleton.get_children():
 		if mi is MeshInstance3D:
 			meshes.append(mi)
 			mi.set_instance_shader_parameter("swap", swap)
-			mi.set_instance_shader_parameter("rim_override", Color("3fe0d0") if fighter.idx == 0 else Color("ffb23a"))
+			mi.set_instance_shader_parameter("rim_override", rim_col)
 	turn = deg_to_rad(90.0 * fighter.facing)
 
 func _len(clip: String) -> float:
@@ -86,8 +91,8 @@ func _phase(f: FighterSim) -> String:
 func _clip_pose(a: String, f: FighterSim, loop_t: float) -> Array:
 	match a:
 		"idle", "win": return ["Punch_Jab", 0.0]    # boxing guard until Mixamo Fight Idle lands; the bob below keeps it alive
-		"walk_f": return ["Walk", fposmod(_stepped(clock * _walk_rate(f.stats.walk_f)), _len("Walk"))]
-		"walk_b": return ["Walk", _len("Walk") - fposmod(_stepped(clock * _walk_rate(f.stats.walk_b)), _len("Walk")) - 0.01]
+		"walk_f": return ["Walk", fposmod(_stepped(clock * _walk_rate(f.move_speed())), _len("Walk"))]
+		"walk_b": return ["Walk", _len("Walk") - fposmod(_stepped(clock * _walk_rate(f.move_speed())), _len("Walk")) - 0.01]
 		"crouch": return ["Crouch_Idle", fposmod(loop_t, _len("Crouch_Idle"))]
 		"block_stand": return ["Punch_Jab", 0.0]
 		"block_crouch": return ["Crouch_Idle", 0.2]
@@ -151,12 +156,12 @@ func present(dt: float, tick: int) -> void:
 		target = -4.0 if f.st <= s else 9.0 if f.st <= s + HOLD_MIN + 2 else 3.0
 	elif f.state == "blockstun": target = -6.0
 	lean = lerpf(lean, target, 0.45)
-	model.basis = Basis(Vector3.UP, turn) * Basis(Vector3(0, 0, 1), deg_to_rad(-lean * f.facing))
+	model.basis = Basis(Vector3.UP, turn) * Basis(Vector3(0, 0, 1), deg_to_rad(-lean * f.facing)) * Basis.from_scale(Vector3.ONE * body_scale)
 	var shake := 0.0
 	if f.hitstop > 0 and (f.state == "hit" or f.state == "blockstun" or f.state == "thrown"):
 		shake = 0.015 * (1.0 if tick % 2 == 0 else -1.0)
 	var bob := 0.012 * sin(floorf(clock * STEP_FPS) / STEP_FPS * TAU * 1.1) if f.state == "idle" else 0.0
-	model.position = Vector3(shake, ground + bob, 0.0)
+	model.position = Vector3(shake, (ground + bob) * body_scale, 0.0)
 	var flash := 0.0
 	if f.state in ["hit", "thrown"] and f.hitstop > 0:
 		flash_age += 1
@@ -204,11 +209,42 @@ static func _ground_drop(skel: Skeleton3D) -> float:
 		if b >= 0: low = minf(low, skel.get_bone_global_pose(b).origin.y)
 	return -(low - 0.07)
 
+static func look_of(model_id: String) -> Dictionary:
+	var path := "res://fighters/%s/look.json" % model_id
+	return JSON.parse_string(FileAccess.get_file_as_string(path)) if FileAccess.file_exists(path) else {}
+
+## look.json "hide": material-name fragments whose surfaces are not drawn (a shaved head hides the hair).
+static func _hide(skel: Skeleton3D, frags: Array) -> void:
+	for mi in skel.get_children():
+		if not (mi is MeshInstance3D and mi.mesh): continue
+		for i in mi.mesh.get_surface_count():
+			var mat: Material = mi.get_surface_override_material(i)
+			if mat == null: mat = mi.mesh.surface_get_material(i)
+			for fr in frags:
+				if mat and String(fr) in mat.resource_name: mi.set_surface_override_material(i, _invisible())
+
+## look.json "colors": {material-name fragment: [r, g, b]} multiplies that material's colour (and its outline pass's), so one baked
+## body can be dressed in another palette.
+static func _colors(skel: Skeleton3D, cols: Dictionary) -> void:
+	for mi in skel.get_children():
+		if not (mi is MeshInstance3D and mi.mesh): continue
+		for i in mi.mesh.get_surface_count():
+			var mat: Material = mi.get_surface_override_material(i)
+			if not (mat is ShaderMaterial): continue
+			for key in cols:
+				if String(key) not in mat.resource_name: continue
+				var c: Array = cols[key]
+				var d: ShaderMaterial = mat.duplicate()
+				var base: Color = d.get_shader_parameter("base_color")
+				d.set_shader_parameter("base_color", Color(base.r * c[0], base.g * c[1], base.b * c[2], base.a))
+				mi.set_surface_override_material(i, d)
+
 ## Attaches the accessories listed in fighters/<id>/look.json ("accessories": prop scene, humanoid bone, offset) to the skeleton.
 static func dress(skel: Skeleton3D, model_id: String) -> void:
-	var path := "res://fighters/%s/look.json" % model_id
-	if not FileAccess.file_exists(path): return
-	var look: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
+	var look := look_of(model_id)
+	if look.is_empty(): return
+	_hide(skel, look.get("hide", []))
+	_colors(skel, look.get("colors", {}))
 	_outfit(skel, look.get("outfit", {}))
 	_textures(skel, look.get("textures", {}))
 	for acc in look.get("accessories", []):

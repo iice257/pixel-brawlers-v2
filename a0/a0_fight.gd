@@ -13,7 +13,8 @@ var info: Label
 var banner: Label
 var hud: FightHud
 var hint: Label
-var model_ids := ["a0", "a0"]
+var fighter_ids := ["kestrel", "briggs"]   # data/fighters/<id>.json for each side
+var model_ids := ["a0", "briggs"]
 var seq_dir := ""
 var seq_every := 3
 var seq_from := 0
@@ -54,8 +55,11 @@ func _ready() -> void:
 	win.content_scale_size = Vector2i(1280, 720)
 	win.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 	win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	if cfg.has("fighters"): fighter_ids = cfg.fighters.duplicate()
 	if cfg.has("names"): names = cfg.names
+	else: names = fighter_ids.map(func(i: String) -> String: return String(FighterSim.load_data(i).name))
 	if cfg.has("models"): model_ids = cfg.models.duplicate()
+	else: model_ids = fighter_ids.map(func(i: String) -> String: return String(FighterSim.load_data(i).model))
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--shot="): shot = a.trim_prefix("--shot=")
 		elif a.begins_with("--ticks="): shot_ticks = int(a.trim_prefix("--ticks="))
@@ -92,7 +96,7 @@ func _ready() -> void:
 	add_child(box_mesh)
 
 func _reset() -> void:
-	match_sim = MatchSim.new("placeholder", "placeholder", 1, 3)
+	match_sim = MatchSim.new(fighter_ids[0], fighter_ids[1], 1, 3)
 	for v in views: v.queue_free()
 	views.clear()
 	var swaps := [0.0, 1.0 if model_ids[0] == model_ids[1] else 0.0]   # same model on both sides: P2 gets the hue swap

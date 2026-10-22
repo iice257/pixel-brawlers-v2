@@ -61,6 +61,8 @@ func think(f: Array) -> Dictionary:
 			var key := _t - int(seen.o)                              # the tick this attack began (one decision per attack)
 			if key != _seen:
 				_seen = key
+				if m.moves.has("H") and m.moves.H.has("armor") and left > 2 and rng.randf() < 0.25 * tier / 8.0:
+					return _attack("H", m, dir)                          # armoured heavy: take the hit and swing back
 				if rng.randf() < block_skill and left >= -2:
 					var low := _level(seen.cur) == "low"
 					if rng.randf() < 0.3 * (1.0 - block_skill) / 0.85: low = not low      # low tiers guard the wrong height
@@ -77,6 +79,10 @@ func think(f: Array) -> Dictionary:
 		if rng.randf() < combo_skill: return _attack(["L", "M", "H"][mini(maxi(o.combo_hits - 1, 0), 2)], m, dir)
 		return _mk({}, dir)
 	if not m.actionable(): return _mk({}, dir)
+	# command grab beats a guard: the higher tiers go for it on a blocking opponent in reach
+	if m.moves.has("S") and m.moves.S.kind == "throw" and tier >= 6 and seen.st in ["guard", "cguard", "blockstun"] \
+			and gap < float(m.moves.S.range) + HALF_W - 6.0 and rng.randf() < (0.7 if tier == 8 else 0.25):
+		return _attack("S", m, dir)
 	# pressure: opponent in block/hit stun
 	if o.state in ["blockstun", "hit"] and gap < 70.0 and rng.randf() < aggression:
 		var r := rng.randf()
@@ -90,15 +96,24 @@ func think(f: Array) -> Dictionary:
 	if rng.randf() < 0.1 + aggression * 0.14:
 		var want := 52.0
 		if gap > want + 14.0:
+			if _gap_closer(m, gap): return _mk({"fwd": 1}, dir)
 			if rng.randf() < 0.07 + aggression * 0.05 and m.moves.has("jM"): return _jump(dir, gap)
 			_walk = rng.randi_range(8, 24); return _mk({"fwd": 1}, dir)
 		if gap < want - 20.0:
 			if rng.randf() < 0.2 * tier / 8.0 and m.moves.has("throw"): return _attack("throw", m, dir)
 			_walk = -rng.randi_range(6, 14); return _mk({"fwd": -1}, dir)
 		var pick: String = ["L", "2L", "M", "H", "S"][rng.randi_range(0, mini(1 + tier / 2, 4))]
+		if m.moves.has("S") and m.moves.S.kind == "ground" and m.moves.S.has("lunge") and rng.randf() < 0.2: pick = "S"
 		if tier == 8 and rng.randf() < 0.05: return _mk({}, dir)         # whiffs a few percent so even tier 8 is beatable
 		return _attack(pick, m, dir)
 	return _mk({}, dir)
+
+## Far apart: double-tap forward for a dash (or a hop step if the fighter has no dash), queued as release, press, press.
+func _gap_closer(m: FighterSim, gap: float) -> bool:
+	var far := 100.0 if m.stats.has("dash") else 130.0
+	if gap < far or not (m.stats.has("dash") or m.stats.has("hop")) or rng.randf() > 0.25 + aggression * 0.3: return false
+	_q = [{}, {"fwd": 1}, {"fwd": 1}, {"fwd": 1}]
+	return true
 
 func _reach(mv: Dictionary) -> float:
 	var r := 0.0

@@ -3,10 +3,10 @@ extends Node3D
 ## hit window and boxes, and saves to data/fighters/<id>.json. Run: godot --path . res://tools/box_editor.tscn (editor builds only).
 ## Keys: Q/E move, A/D tick, Tab select hit entry, arrows move box (Shift = 4 px), Ctrl+arrows resize,
 ##       [ ] hit starts earlier/later, - = hit ends earlier/later, J K recovery -/+, S save, F5 reload from disk.
-## Hurt and push boxes are per stance in SimConst.BOXES (shared by every fighter), so they are shown here but not edited.
+## Hurt and push boxes are per stance (data "boxes" per fighter, else SimConst.BOXES), so they are shown here but not edited. Pick a fighter with --fighter=<id>.
 const W := FighterView.WORLD_PER_PX
 const CX := FighterView.CENTER_X
-const FIGHTER := "placeholder"
+var FIGHTER := "placeholder"
 
 var data: Dictionary
 var move_ids: Array = []
@@ -38,6 +38,8 @@ func _ready() -> void:
 	var bm := StandardMaterial3D.new(); bm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	bm.vertex_color_use_as_albedo = true; bm.no_depth_test = true
 	box_mesh.material_override = bm; add_child(box_mesh)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--fighter="): FIGHTER = a.trim_prefix("--fighter=")
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--move="): mi = maxi(FighterSim.load_data(FIGHTER).moves.keys().find(a.trim_prefix("--move=")), 0)
 		elif a.begins_with("--tick="): tick = int(a.trim_prefix("--tick="))
@@ -78,7 +80,7 @@ func _apply() -> void:
 	sim.st = tick
 	if view: view.queue_free()
 	view = FighterView.new(); add_child(view)
-	view.setup(sim, "a0", 0.0)
+	view.setup(sim, String(data.get("model", "a0")), 0.0)
 	view.present(1.0 / 60.0, tick)
 	sel = clampi(sel, 0, maxi(_hits().size() - 1, 0))
 	_refresh()
