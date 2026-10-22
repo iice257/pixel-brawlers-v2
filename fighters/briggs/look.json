@@ -1,18 +1,145 @@
 {
-	"scale": 1.1,
-	"rim": [1.0, 0.55, 0.16],
-	"hide": ["HAIR"],
-	"colors": {
-		"SKIN": [0.86, 0.66, 0.54],
-		"Tops": [1.0, 0.62, 0.42],
-		"Tie": [2.2, 0.35, 0.3],
-		"Bottoms": [1.0, 0.75, 0.55],
-		"Shoes": [1.0, 0.8, 0.6],
-		"FaceBrow": [0.45, 0.35, 0.3]
-	},
-	"accessories": [
-		{ "prop": "gauntlet", "bone": "LeftLowerArm", "pos": [0.12, 0, 0], "scale": [1.15, 1.15, 1.15] },
-		{ "prop": "gauntlet", "bone": "RightLowerArm", "pos": [-0.12, 0, 0], "scale": [-1.15, 1.15, 1.15] },
-		{ "prop": "belt", "bone": "Hips", "pos": [0, 0.1, 0], "scale": [1.2, 1.1, 1.2] }
-	]
+ "scale": 1.1,
+ "rim": [
+  1.0,
+  0.55,
+  0.16
+ ],
+ "hide": [
+  "HAIR"
+ ],
+ "colors": {
+  "SKIN": [
+   0.74,
+   0.52,
+   0.42
+  ],
+  "Tops": [
+   1.0,
+   0.62,
+   0.42
+  ],
+  "Tie": [
+   2.2,
+   0.35,
+   0.3
+  ],
+  "Bottoms": [
+   1.0,
+   0.75,
+   0.55
+  ],
+  "Shoes": [
+   1.0,
+   0.8,
+   0.6
+  ],
+  "FaceBrow": [
+   0.45,
+   0.35,
+   0.3
+  ]
+ },
+ "accessories": [
+  {
+   "prop": "gauntlet",
+   "bone": "LeftLowerArm",
+   "pos": [
+    0.12,
+    0,
+    0
+   ],
+   "scale": [
+    1.15,
+    1.15,
+    1.15
+   ]
+  },
+  {
+   "prop": "big_gauntlet",
+   "bone": "RightLowerArm",
+   "pos": [
+    -0.04,
+    0,
+    0
+   ],
+   "scale": [
+    -1,
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "belt",
+   "bone": "Hips",
+   "pos": [
+    0,
+    0.1,
+    0
+   ],
+   "scale": [
+    1.2,
+    1.1,
+    1.2
+   ]
+  },
+  {
+   "prop": "apron",
+   "bone": "Hips",
+   "pos": [
+    0,
+    -0.1,
+    0.135
+   ],
+   "rot": [
+    40,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    0.85,
+    1
+   ]
+  },
+  {
+   "prop": "boot",
+   "bone": "LeftFoot",
+   "pos": [
+    0,
+    -0.03,
+    0.04
+   ]
+  },
+  {
+   "prop": "boot",
+   "bone": "RightFoot",
+   "pos": [
+    0,
+    -0.03,
+    0.04
+   ]
+  },
+  {
+   "prop": "moustache",
+   "bone": "Head",
+   "pos": [
+    0,
+    0.032,
+    0.122
+   ],
+   "scale": [
+    1.25,
+    1.25,
+    1.25
+   ]
+  }
+ ],
+ "shade": {
+  "SKIN": [
+   0.55,
+   0.42,
+   0.4
+  ]
+ }
 }
