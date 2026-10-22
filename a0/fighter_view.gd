@@ -3,6 +3,7 @@ extends Node3D
 ## Draws one FighterSim as the baked 3D character. Pose timing comes from the sim (held key poses on attacks, stepped
 ## 12 fps loops); body position comes from the sim every tick, so motion stays smooth while the pose steps.
 
+const WALK_STANCE_MPS := 0.85         # planted-foot speed of the Walk clip at rate 1 (tools/measure_walk.gd)
 const WORLD_PER_PX := 0.018          # sim pixel -> metres (a 100 px fighter is 1.8 m)
 const CENTER_X := 288.0
 const STEP_FPS := 12.0
@@ -81,8 +82,8 @@ func _phase(f: FighterSim) -> String:
 func _clip_pose(a: String, f: FighterSim, loop_t: float) -> Array:
 	match a:
 		"idle", "win": return ["Punch_Jab", 0.0]    # boxing guard until Mixamo Fight Idle lands; the bob below keeps it alive
-		"walk_f": return ["Walk", fposmod(loop_t, _len("Walk"))]
-		"walk_b": return ["Walk", _len("Walk") - fposmod(loop_t, _len("Walk")) - 0.01]
+		"walk_f": return ["Walk", fposmod(_stepped(clock * _walk_rate(f.stats.walk_f)), _len("Walk"))]
+		"walk_b": return ["Walk", _len("Walk") - fposmod(_stepped(clock * _walk_rate(f.stats.walk_b)), _len("Walk")) - 0.01]
 		"crouch": return ["Crouch_Idle", fposmod(loop_t, _len("Crouch_Idle"))]
 		"block_stand": return ["Punch_Jab", 0.0]
 		"block_crouch": return ["Crouch_Idle", 0.2]
@@ -95,6 +96,10 @@ func _clip_pose(a: String, f: FighterSim, loop_t: float) -> Array:
 		"wakeup": return ["LayToIdle", clampf(float(f.st) / SimConst.GETUP, 0.0, 1.0) * (_len("LayToIdle") - 0.02)]
 		"ko": return ["Death01", 1.45]    # the knockdown already put the body on the floor; stay lying, never replay the fall from standing
 	return ["Idle", 0.0]
+
+## Walk clip playback rate that makes the planted foot travel exactly as fast as the body (sim px/tick -> m/s over the clip's stance speed).
+func _walk_rate(px_per_tick: float) -> float:
+	return px_per_tick * WORLD_PER_PX * 60.0 / WALK_STANCE_MPS
 
 ## The reaction clips are short; hold the mid-clip reaction pose for the stun and let the exaggeration do the selling.
 func _hit_time(clip: String) -> float:

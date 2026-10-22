@@ -15,7 +15,7 @@
    "hips": [
     0,
     0,
-    -0.3
+    -0.12
    ],
    "Spine": [
     28,
@@ -27,26 +27,28 @@
     0,
     0
    ],
-   "LeftUpperLeg": [
-    -78,
-    0,
-    0
-   ],
-   "LeftLowerLeg": [
-    92,
-    0,
-    0
-   ],
-   "RightUpperLeg": [
-    -70,
-    0,
-    0
-   ],
-   "RightLowerLeg": [
-    88,
-    0,
-    0
-   ]
+   "aim": {
+    "RightUpperLeg": [
+     -0.5,
+     -0.25,
+     0.7
+    ],
+    "RightLowerLeg": [
+     -0.05,
+     -1,
+     -0.55
+    ],
+    "LeftUpperLeg": [
+     0.5,
+     -0.25,
+     0.7
+    ],
+    "LeftLowerLeg": [
+     0.05,
+     -1,
+     -0.55
+    ]
+   }
   }
  },
  "block_stand": {
@@ -96,7 +98,7 @@
    "hips": [
     0,
     0,
-    -0.3
+    -0.12
    ],
    "Spine": [
     24,
@@ -108,26 +110,28 @@
     0,
     0
    ],
-   "LeftUpperLeg": [
-    -78,
-    0,
-    0
-   ],
-   "LeftLowerLeg": [
-    92,
-    0,
-    0
-   ],
-   "RightUpperLeg": [
-    -70,
-    0,
-    0
-   ],
-   "RightLowerLeg": [
-    88,
-    0,
-    0
-   ],
+   "aim": {
+    "RightUpperLeg": [
+     -0.5,
+     -0.25,
+     0.7
+    ],
+    "RightLowerLeg": [
+     -0.05,
+     -1,
+     -0.55
+    ],
+    "LeftUpperLeg": [
+     0.5,
+     -0.25,
+     0.7
+    ],
+    "LeftLowerLeg": [
+     0.05,
+     -1,
+     -0.55
+    ]
+   },
    "RightUpperArm": [
     -25,
     0,
@@ -620,49 +624,7 @@
    "hips": [
     0,
     0,
-    -0.3
-   ],
-   "Spine": [
-    30,
-    0,
-    0
-   ],
-   "Head": [
-    -14,
-    0,
-    0
-   ],
-   "LeftUpperLeg": [
-    -78,
-    0,
-    0
-   ],
-   "LeftLowerLeg": [
-    92,
-    0,
-    0
-   ],
-   "RightUpperLeg": [
-    -70,
-    0,
-    0
-   ],
-   "RightLowerLeg": [
-    88,
-    0,
-    0
-   ],
-   "RightUpperArm": [
-    14,
-    0,
-    0
-   ]
-  },
-  "imp": {
-   "hips": [
-    0,
-    0,
-    -0.3
+    -0.12
    ],
    "Spine": [
     28,
@@ -674,26 +636,72 @@
     0,
     0
    ],
-   "LeftUpperLeg": [
-    -78,
+   "aim": {
+    "RightUpperLeg": [
+     -0.5,
+     -0.25,
+     0.7
+    ],
+    "RightLowerLeg": [
+     -0.05,
+     -1,
+     -0.55
+    ],
+    "LeftUpperLeg": [
+     0.5,
+     -0.25,
+     0.7
+    ],
+    "LeftLowerLeg": [
+     0.05,
+     -1,
+     -0.55
+    ]
+   },
+   "RightUpperArm": [
+    14,
+    0,
+    0
+   ]
+  },
+  "imp": {
+   "hips": [
+    0,
+    0,
+    -0.12
+   ],
+   "Spine": [
+    28,
     0,
     0
    ],
-   "LeftLowerLeg": [
-    92,
+   "Head": [
+    -14,
     0,
     0
    ],
-   "RightUpperLeg": [
-    -70,
-    0,
-    0
-   ],
-   "RightLowerLeg": [
-    88,
-    0,
-    0
-   ],
+   "aim": {
+    "RightUpperLeg": [
+     -0.5,
+     -0.25,
+     0.7
+    ],
+    "RightLowerLeg": [
+     -0.05,
+     -1,
+     -0.55
+    ],
+    "LeftUpperLeg": [
+     0.5,
+     -0.25,
+     0.7
+    ],
+    "LeftLowerLeg": [
+     0.05,
+     -1,
+     -0.55
+    ]
+   },
    "RightUpperArm": [
     -55,
     0,
@@ -709,7 +717,7 @@
    "hips": [
     0,
     0,
-    -0.3
+    -0.12
    ],
    "Spine": [
     28,
@@ -721,26 +729,28 @@
     0,
     0
    ],
-   "LeftUpperLeg": [
-    -78,
-    0,
-    0
-   ],
-   "LeftLowerLeg": [
-    92,
-    0,
-    0
-   ],
-   "RightUpperLeg": [
-    -70,
-    0,
-    0
-   ],
-   "RightLowerLeg": [
-    88,
-    0,
-    0
-   ]
+   "aim": {
+    "RightUpperLeg": [
+     -0.5,
+     -0.25,
+     0.7
+    ],
+    "RightLowerLeg": [
+     -0.05,
+     -1,
+     -0.55
+    ],
+    "LeftUpperLeg": [
+     0.5,
+     -0.25,
+     0.7
+    ],
+    "LeftLowerLeg": [
+     0.05,
+     -1,
+     -0.55
+    ]
+   }
   }
  },
  "2M": {
