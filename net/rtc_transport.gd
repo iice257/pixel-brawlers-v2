@@ -16,6 +16,7 @@ var _ch: WebRTCDataChannel
 var _remote_set := false
 var _ice_wait: Array = []
 var _hello_t := 0.0
+var _hello_ms := 0
 
 static func available() -> bool:
 	return OS.has_feature("web")
@@ -71,7 +72,9 @@ func _raw_poll() -> void:
 		if is_host and code == "" and sig.code != "": code = sig.code; status = "waiting"
 		for m in sig.take(): _on_signal(m)
 		if not is_host and not _remote_set and sig.status == "ready":     # the first hello can land before the host is listening: repeat it until the offer arrives
-			_hello_t += 1.0 / 60.0
+			var now := Time.get_ticks_msec()
+			_hello_t += 0.0 if _hello_ms == 0 else float(now - _hello_ms) / 1000.0
+			_hello_ms = now
 			if _hello_t >= HELLO_EVERY: _hello_t = 0.0; sig.send({ "t": "hello" })
 	if _pc == null: return
 	_pc.poll()
