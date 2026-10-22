@@ -1,0 +1,12 @@
+{
+	"id": "stage1",
+	"name": "Airship Deck",
+	"art_dir": "res://assets/stages/stage1/",
+	"floor_y": 0.80,
+	"haze": { "color": "#f0b98a", "alpha": 0.16 },
+	"layers": [
+		{ "name": "sky", "kind": "far", "scroll": 0.06 },
+		{ "name": "deck", "kind": "plane", "scroll": 1.0 },
+		{ "name": "front", "kind": "front", "scroll": 1.35 }
+	]
+}

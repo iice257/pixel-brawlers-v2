@@ -28,6 +28,7 @@ var _done := false
 var shake := 0.0   # camera shake amplitude in metres, kicked by hit/block events and decayed per tick
 var nudge := 0.0   # sideways camera push on heavy hits (metres, towards the defender), decayed per tick
 var env: Environment
+var stage: ParallaxStage
 var sfx: Sfx.Pool
 var sparks: Array = []        # [node, age, life, size]
 var spark_mesh: ArrayMesh
@@ -96,7 +97,9 @@ func _reset() -> void:
 	_cam_follow(true)
 
 func _build_stage() -> void:
-	add_child(AirshipDeck.new())
+	stage = ParallaxStage.new()
+	add_child(stage)
+	stage.setup(env)
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new(); add_child(layer)
@@ -260,6 +263,7 @@ func _cam_follow(snap: bool) -> void:
 	if shake > 0.002:
 		var t := float(match_sim.world.tick)
 		cam.position += Vector3(sin(t * 12.9898), cos(t * 78.233), 0.0) * shake
+	stage.update(cam)
 
 func _hud() -> void:
 	var fs := match_sim.world.fighters
