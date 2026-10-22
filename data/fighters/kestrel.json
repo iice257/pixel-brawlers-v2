@@ -1,0 +1,506 @@
+{
+ "id": "kestrel",
+ "name": "KESTREL",
+ "stats": {
+  "hp": 900,
+  "walk_f": 2.8,
+  "walk_b": 2.2,
+  "jump": 1.05,
+  "gravity": 0.41,
+  "pwr": 1.0,
+  "def": 1.0,
+  "height": 100,
+  "dash": {
+   "f": {
+    "ticks": 16,
+    "rec": 4,
+    "speed": 4.8
+   },
+   "b": {
+    "ticks": 18,
+    "rec": 5,
+    "speed": 3.6,
+    "invuln": 4
+   }
+  }
+ },
+ "moves": {
+  "L": {
+   "id": "L",
+   "anim": "L",
+   "kind": "ground",
+   "weight": 1,
+   "startup": 3,
+   "active": 2,
+   "recovery": 5,
+   "cancels": {
+    "chain": true,
+    "special": true
+   },
+   "hits": [
+    {
+     "from": 4,
+     "to": 5,
+     "box": [
+      10,
+      56,
+      34,
+      16
+     ],
+     "dmg": 28,
+     "hitstun": 11,
+     "blockstun": 8,
+     "hitstop": 7,
+     "pb_hit": 1.6,
+     "pb_block": 2.2,
+     "kd": "none",
+     "launch": [
+      0,
+      0
+     ],
+     "juggle_cost": 1,
+     "juggle_start": 0,
+     "heavy": false,
+     "level": "mid"
+    }
+   ]
+  },
+  "M": {
+   "id": "M",
+   "anim": "M",
+   "kind": "ground",
+   "weight": 2,
+   "startup": 6,
+   "active": 3,
+   "recovery": 11,
+   "cancels": {
+    "chain": true,
+    "special": true
+   },
+   "hits": [
+    {
+     "from": 7,
+     "to": 9,
+     "box": [
+      10,
+      46,
+      40,
+      22
+     ],
+     "dmg": 60,
+     "hitstun": 17,
+     "blockstun": 11,
+     "hitstop": 9,
+     "pb_hit": 2.0,
+     "pb_block": 2.8,
+     "kd": "none",
+     "launch": [
+      0,
+      0
+     ],
+     "juggle_cost": 1,
+     "juggle_start": 0,
+     "heavy": true,
+     "level": "mid"
+    }
+   ],
+   "lunge": [
+    2,
+    9,
+    1.1
+   ]
+  },
+  "H": {
+   "id": "H",
+   "anim": "H",
+   "kind": "ground",
+   "weight": 3,
+   "startup": 8,
+   "active": 4,
+   "recovery": 12,
+   "cancels": {
+    "chain": false,
+    "special": false
+   },
+   "hits": [
+    {
+     "from": 9,
+     "to": 12,
+     "box": [
+      8,
+      40,
+      48,
+      30
+     ],
+     "dmg": 81,
+     "hitstun": 24,
+     "blockstun": 13,
+     "hitstop": 10,
+     "pb_hit": 2.6,
+     "pb_block": 3.4,
+     "kd": "soft",
+     "launch": [
+      2.0,
+      6.0
+     ],
+     "juggle_cost": 2,
+     "juggle_start": 3,
+     "heavy": true,
+     "level": "mid"
+    }
+   ],
+   "lunge": [
+    3,
+    12,
+    1.6
+   ]
+  },
+  "S": {
+   "id": "S",
+   "anim": "S",
+   "kind": "ground",
+   "weight": 3,
+   "startup": 11,
+   "active": 2,
+   "recovery": 19,
+   "cancels": {
+    "chain": false,
+    "special": false
+   },
+   "lunge": [
+    3,
+    14,
+    3.4
+   ],
+   "hits": [
+    {
+     "from": 12,
+     "to": 13,
+     "box": [
+      10,
+      40,
+      34,
+      26
+     ],
+     "dmg": 55,
+     "hitstun": 18,
+     "blockstun": 11,
+     "hitstop": 8,
+     "pb_hit": 1.6,
+     "pb_block": 2.2,
+     "kd": "none",
+     "launch": [
+      0,
+      0
+     ],
+     "juggle_cost": 1,
+     "juggle_start": 0,
+     "heavy": true,
+     "level": "mid"
+    },
+    {
+     "from": 14,
+     "to": 15,
+     "box": [
+      40,
+      38,
+      34,
+      26
+     ],
+     "dmg": 70,
+     "hitstun": 24,
+     "blockstun": 22,
+     "hitstop": 9,
+     "pb_hit": 1.0,
+     "pb_block": 0.6,
+     "kd": "soft",
+     "launch": [
+      1.5,
+      3.5
+     ],
+     "juggle_cost": 2,
+     "juggle_start": 3,
+     "heavy": true,
+     "level": "mid",
+     "tip": true
+    }
+   ]
+  },
+  "jL": {
+   "id": "jL",
+   "anim": "jL",
+   "kind": "air",
+   "weight": 1,
+   "startup": 4,
+   "active": 6,
+   "recovery": 6,
+   "cancels": {
+    "chain": false,
+    "special": false
+   },
+   "hits": [
+    {
+     "from": 5,
+     "to": 10,
+     "box": [
+      6,
+      10,
+      34,
+      30
+     ],
+     "dmg": 30,
+     "hitstun": 11,
+     "blockstun": 8,
+     "hitstop": 7,
+     "pb_hit": 1.2,
+     "pb_block": 1.6,
+     "kd": "none",
+     "launch": [
+      0,
+      0
+     ],
+     "juggle_cost": 1,
+     "juggle_start": 0,
+     "heavy": false,
+     "level": "overhead"
+    }
+   ],
+   "land_lag": 3
+  },
+  "jM": {
+   "id": "jM",
+   "anim": "jM",
+   "kind": "air",
+   "weight": 2,
+   "startup": 6,
+   "active": 6,
+   "recovery": 8,
+   "cancels": {
+    "chain": false,
+    "special": false
+   },
+   "hits": [
+    {
+     "from": 7,
+     "to": 12,
+     "box": [
+      6,
+      10,
+      38,
+      34
+     ],
+     "dmg": 55,
+     "hitstun": 15,
+     "blockstun": 10,
+     "hitstop": 9,
+     "pb_hit": 1.4,
+     "pb_block": 2.0,
+     "kd": "none",
+     "launch": [
+      0,
+      0
+     ],
+     "juggle_cost": 1,
+     "juggle_start": 0,
+     "heavy": true,
+     "level": "overhead"
+    }
+   ],
+   "land_lag": 3
+  },
+  "jH": {
+   "id": "jH",
+   "anim": "jH",
+   "kind": "air",
+   "weight": 3,
+   "startup": 8,
+   "active": 6,
+   "recovery": 10,
+   "cancels": {
+    "chain": false,
+    "special": false
+   },
+   "hits": [
+    {
+     "from": 9,
+     "to": 14,
+     "box": [
+      4,
+      8,
+      42,
+      38
+     ],
+     "dmg": 80,
+     "hitstun": 20,
+     "blockstun": 13,
+     "hitstop": 10,
+     "pb_hit": 1.6,
+     "pb_block": 2.4,
+     "kd": "soft",
+     "launch": [
+      2.0,
+      3.0
+     ],
+     "juggle_cost": 2,
+     "juggle_start": 0,
+     "heavy": true,
+     "level": "overhead"
+    }
+   ],
+   "land_lag": 3
+  },
+  "throw": {
+   "id": "throw",
+   "anim": "throw",
+   "kind": "throw",
+   "weight": 0,
+   "startup": 5,
+   "active": 2,
+   "recovery": 24,
+   "cancels": {
+    "chain": false,
+    "special": false
+   },
+   "hits": [],
+   "range": 46,
+   "dmg": 100,
+   "hitstop": 0,
+   "launch": [
+    2.5,
+    4.0
+   ]
+  },
+  "2L": {
+   "id": "2L",
+   "anim": "2L",
+   "kind": "ground",
+   "stance": "crouch",
+   "weight": 1,
+   "startup": 3,
+   "active": 2,
+   "recovery": 6,
+   "cancels": {
+    "chain": true,
+    "special": false
+   },
+   "hits": [
+    {
+     "from": 4,
+     "to": 5,
+     "box": [
+      10,
+      0,
+      38,
+      20
+     ],
+     "dmg": 25,
+     "hitstun": 10,
+     "blockstun": 7,
+     "hitstop": 7,
+     "pb_hit": 1.2,
+     "pb_block": 1.8,
+     "kd": "none",
+     "launch": [
+      0,
+      0
+     ],
+     "juggle_cost": 1,
+     "juggle_start": 0,
+     "heavy": false,
+     "level": "low"
+    }
+   ]
+  },
+  "2M": {
+   "id": "2M",
+   "anim": "2M",
+   "kind": "ground",
+   "stance": "crouch",
+   "weight": 2,
+   "startup": 6,
+   "active": 3,
+   "recovery": 12,
+   "cancels": {
+    "chain": true,
+    "special": false
+   },
+   "hits": [
+    {
+     "from": 7,
+     "to": 9,
+     "box": [
+      10,
+      0,
+      48,
+      22
+     ],
+     "dmg": 50,
+     "hitstun": 16,
+     "blockstun": 10,
+     "hitstop": 9,
+     "pb_hit": 1.8,
+     "pb_block": 2.6,
+     "kd": "none",
+     "launch": [
+      0,
+      0
+     ],
+     "juggle_cost": 1,
+     "juggle_start": 0,
+     "heavy": true,
+     "level": "low"
+    }
+   ]
+  },
+  "2H": {
+   "id": "2H",
+   "anim": "2H",
+   "kind": "ground",
+   "stance": "crouch",
+   "weight": 3,
+   "startup": 8,
+   "active": 4,
+   "recovery": 20,
+   "cancels": {
+    "chain": false,
+    "special": false
+   },
+   "hits": [
+    {
+     "from": 9,
+     "to": 12,
+     "box": [
+      8,
+      36,
+      44,
+      44
+     ],
+     "dmg": 80,
+     "hitstun": 22,
+     "blockstun": 14,
+     "hitstop": 10,
+     "pb_hit": 2.2,
+     "pb_block": 3.0,
+     "kd": "hard",
+     "launch": [
+      1.5,
+      5.5
+     ],
+     "juggle_cost": 2,
+     "juggle_start": 3,
+     "heavy": true,
+     "level": "low"
+    }
+   ],
+   "lunge": [
+    2,
+    8,
+    0.9
+   ]
+  }
+ },
+ "tag": "DUELLIST",
+ "style": "rushdown",
+ "model": "a0",
+ "color": "#3fe0d0"
+}

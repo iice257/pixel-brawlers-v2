@@ -5,10 +5,15 @@ extends Control
 ## p1_* / p2_* actions. Transitions are a 0.36 s red wipe. Art slots: assets/ui/logo.png (title), assets/ui/portraits/<id>.png (character cards).
 
 const FONT := preload("res://assets/fonts/Bangers-Regular.ttf")
-const ROSTER := [
-	{"id": "kestrel", "name": "KESTREL", "model": "a0", "tag": "Gadgeteer", "color": Color("3fe0d0")},
-	{"id": "briggs", "name": "BRIGGS", "model": "a0", "tag": "Brawler", "color": Color("ffb23a")},
-]
+const FIGHTER_IDS := ["kestrel", "briggs"]     # select order; name, tag, model and colour are read from data/fighters/<id>.json
+static var _roster: Array = []
+
+static func roster() -> Array:
+	if _roster.is_empty():
+		for id in FIGHTER_IDS:
+			var d: Dictionary = FighterSim.load_data(id)
+			_roster.append({"id": id, "name": String(d.name), "tag": String(d.tag), "model": String(d.model), "color": Color(String(d.color))})
+	return _roster
 const TIER_NAMES := {1: "EASY", 2: "EASY", 3: "NORMAL", 4: "NORMAL", 5: "HARD", 6: "HARD", 7: "MAX", 8: "MAX"}
 const SETTINGS := "user://settings.cfg"
 const RED := Color("e3262f")
@@ -294,8 +299,8 @@ func _stage() -> Control:
 
 func _vs() -> Control:
 	var r := _root()
-	var n0: String = ROSTER[picks[0]].name; var n1: String = ROSTER[picks[1]].name
-	var a := _label(n0, 150, ROSTER[picks[0]].color); var b := _label(n1, 150, ROSTER[picks[1]].color)
+	var n0: String = roster()[picks[0]].name; var n1: String = roster()[picks[1]].name
+	var a := _label(n0, 150, roster()[picks[0]].color); var b := _label(n1, 150, roster()[picks[1]].color)
 	a.position = Vector2(-700, 150); b.position = Vector2(1400, 360)
 	b.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; b.size = Vector2(700, 160)
 	var vs := _label("VS", 220, RED, 20); vs.position = Vector2(540, 250); vs.scale = Vector2(3, 3); vs.modulate.a = 0.0; vs.pivot_offset = Vector2(100, 110)
@@ -318,7 +323,8 @@ func _start_fight() -> void:
 		_bg.visible = false; _ui.visible = false
 		var f: Node = load("res://a0/a0_fight.tscn").instantiate()
 		f.cfg = {"mode": mode, "tier": tier, "stage": stage_id,
-			"names": [ROSTER[picks[0]].name, ROSTER[picks[1]].name], "models": [ROSTER[picks[0]].model, ROSTER[picks[1]].model]}
+			"fighters": [roster()[picks[0]].id, roster()[picks[1]].id],
+			"names": [roster()[picks[0]].name, roster()[picks[1]].name], "models": [roster()[picks[0]].model, roster()[picks[1]].model]}
 		f.exit.connect(_on_fight_exit)
 		fight = f; add_child(f))
 
@@ -370,8 +376,8 @@ class Select extends Control:
 		set_anchors_preset(Control.PRESET_FULL_RECT)
 		cpu_side = flow.mode != "versus"
 		var t := flow._label("SELECT FIGHTER" if not cpu_side else "SELECT YOUR FIGHTER", 80, Flow.STEAM); t.position = Vector2(100, 40); add_child(t)
-		for i in Flow.ROSTER.size():
-			var c := Card.new(); c.data = Flow.ROSTER[i]; c.position = Vector2(290 + i * 360, 190); c.size = Vector2(320, 400); add_child(c); cards.append(c)
+		for i in Flow.roster().size():
+			var c := Card.new(); c.data = Flow.roster()[i]; c.position = Vector2(290 + i * 360, 190); c.size = Vector2(320, 400); add_child(c); cards.append(c)
 		var hint := flow._label("MOVE  LEFT / RIGHT     CONFIRM  LIGHT / ENTER / A     BACK  BLOCK / ESC / B", 22, Flow.BRASS, 4); hint.position = Vector2(100, 660); add_child(hint)
 
 	func _process(dt: float) -> void:
@@ -389,11 +395,11 @@ class Select extends Control:
 				continue
 			var pre := "p%d_" % (p + 1)
 			var d := int(_pressed(p, "right", "ui_right")) - int(_pressed(p, "left", "ui_left"))
-			if d != 0: idx[p] = posmod(idx[p] + d, Flow.ROSTER.size()); flow.sfx.play("ui_move")
+			if d != 0: idx[p] = posmod(idx[p] + d, Flow.roster().size()); flow.sfx.play("ui_move")
 			if _pressed(p, "light", "ui_accept"): locked[p] = true; flow.sfx.play("ui_confirm")
 			elif _pressed(p, "block", "ui_cancel") and not locked[0] and not locked[1]: flow.sfx.play("ui_back"); flow._goto("menu"); set_process(false); return
 		if cpu_side and locked[0] and not locked[1]:
-			idx[1] = (idx[0] + 1) % Flow.ROSTER.size(); locked[1] = true
+			idx[1] = (idx[0] + 1) % Flow.roster().size(); locked[1] = true
 		if locked[0] and locked[1]:
 			flow.picks = [idx[0], idx[1]]; set_process(false); flow._goto("stage")
 

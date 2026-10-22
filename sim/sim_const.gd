@@ -29,6 +29,11 @@ const PRESS_BUFFER := 5         # ticks a press stays consumable
 const CHAIN_WINDOW := 5         # recovery ticks (after the last active tick) in which a chain cancel is accepted
 const SPECIAL_WINDOW := 6
 
+# Dash input: two taps of the same direction (press, release, press) within DASH_WINDOW ticks of the first press
+const DASH_WINDOW := 14
+const DASH_BUFFER := 3          # ticks the double-tap stays valid while the fighter is still busy
+const ARMOR_STOP := 6           # hitstop on both fighters when armour absorbs a hit
+
 # Combat
 const KNOCKBACK_DECAY := 0.86
 const CORNER_SHARE := 0.4

@@ -82,6 +82,13 @@ func _apply(r: Dictionary) -> void:
 	var away := 1 if o.x > f.x else -1 if o.x < f.x else f.facing
 	f.hits_done.append(r.i)
 	var pb: float
+	var adm := int(roundf(h.dmg * f.stats.get("pwr", 1.0) * o.stats.get("def", 1.0)))
+	if not r.blocked and o.armored() and o.hp > adm:        # armour: the hit costs HP but the move goes on
+		o.hp -= adm; o.armor_left -= 1
+		f.hitstop = SimConst.ARMOR_STOP; o.hitstop = SimConst.ARMOR_STOP
+		f.connected = true
+		events.append({ "type": "hit", "att": f.idx, "def": o.idx, "dmg": adm, "tick": tick, "heavy": true, "level": h.get("level", "mid"), "armor": true })
+		return
 	if r.blocked:
 		o.receive_block(h, away)
 		pb = h.pb_block
@@ -103,7 +110,7 @@ func _try_throw(f: FighterSim, o: FighterSim) -> void:
 	var away := 1 if o.x > f.x else -1 if o.x < f.x else f.facing
 	var was_ko := o.ko
 	var dmg := int(roundf(m.dmg * f.stats.get("pwr", 1.0) * o.stats.get("def", 1.0)))
-	o.receive_throw(dmg, away, m.launch, int(m.hitstop), f.idx)
+	o.receive_throw(dmg, away, m.launch, int(m.hitstop), f.idx, bool(m.get("notech", false)))
 	f.connected = true
 	f.hitstop = int(m.hitstop)
 	events.append({ "type": "grab", "att": f.idx, "def": o.idx, "dmg": 0, "tick": tick })
@@ -118,7 +125,7 @@ func _throw_holds() -> void:
 		if o.state != "thrown" or o.throw_att < 0: continue
 		var f := fighters[o.throw_att]
 		if o.st <= SimConst.TECH_WINDOW:
-			if o.press.get(SimConst.THROW, -1) == 0: _tech(f, o)
+			if not o.throw_notech and o.press.get(SimConst.THROW, -1) == 0: _tech(f, o)
 		elif o.st == SimConst.TECH_WINDOW + 1:
 			var was_ko := o.ko
 			var dmg := o.throw_dmg

@@ -6,7 +6,7 @@ extends RefCounted
 
 const ACTIONABLE := ["idle", "walk_f", "walk_b", "crouch", "guard", "cguard"]
 const AIR_STATES := ["air", "airatk", "launched"]
-const THROWABLE := ["idle", "walk_f", "walk_b", "crouch", "guard", "cguard", "landlag"]
+const THROWABLE := ["idle", "walk_f", "walk_b", "crouch", "guard", "cguard", "landlag", "dash"]
 const TRACKED_BUTTONS := [SimConst.L, SimConst.M, SimConst.H, SimConst.S, SimConst.THROW]
 
 var id: String
@@ -43,6 +43,17 @@ var throw_vx := 0.0
 var throw_vy := 0.0
 var throw_dmg := 0              # damage of the grab this fighter is held in, applied when the tech window closes
 var throw_att := -1             # index of the grabbing fighter
+var throw_notech := false       # the grab this fighter is held in cannot be teched (command grab)
+var boxes: Dictionary           # per-fighter body boxes by stance (data "boxes", else SimConst.BOXES)
+var prev_rel := 0               # facing-relative direction held last tick (dash input)
+var tap_dir := 0                # direction of a first tap still waiting for its second
+var tap_t := 0                  # ticks since that first tap began
+var dash_req := 0               # a double-tap was seen: +1 forward, -1 back (kept DASH_BUFFER ticks)
+var dash_age := 0
+var dash_dir := 0               # direction of the dash being played
+var dash_speed := 0.0           # px per tick of that dash
+var hop := false                # the jump in progress is a short hop step (fighters without a forward dash)
+var armor_left := 0             # hits the current move's armour can still absorb
 
 static func load_data(fighter_id: String) -> Dictionary:
 	var f := FileAccess.open("res://data/fighters/%s.json" % fighter_id, FileAccess.READ)
@@ -52,6 +63,7 @@ static func load_data(fighter_id: String) -> Dictionary:
 func _init(fighter_id: String, index: int, start_x: float, face: int) -> void:
 	var d := load_data(fighter_id)
 	id = fighter_id; idx = index; stats = d.stats; moves = d.moves
+	boxes = d.get("boxes", SimConst.BOXES)
 	reset(start_x, face)
 
 ## Back to the start of a round: full HP, standing, buffers cleared.
@@ -62,6 +74,7 @@ func reset(start_x: float, face: int) -> void:
 	cur = {}; connected = false; hits_done = []; chain = []; air_used = false
 	hit_heavy = false; crouch_block = false; hard_kd = false; ko = false; juggle = 0; combo_hits = 0
 	press = {}; prev_buttons = 0; throw_vx = 0.0; throw_vy = 0.0; throw_dmg = 0; throw_att = -1
+	throw_notech = false; prev_rel = 0; tap_dir = 0; tap_t = 0; dash_req = 0; dash_age = 0; dash_dir = 0; dash_speed = 0.0; hop = false; armor_left = 0
 
 func set_state(s: String) -> void:
 	if s != state: state = s; st = 0
@@ -104,6 +117,7 @@ func anim() -> String:
 		"prejump": return "crouch"
 		"air": return "jump_f" if jump_dir > 0 else "jump_b" if jump_dir < 0 else "jump_up"
 		"attack", "airatk": return cur.get("anim", cur.get("id", "idle"))
+		"dash": return "walk_f" if dash_dir > 0 else "walk_b"
 		"guard": return "block_stand"
 		"cguard": return "block_crouch"
 		"blockstun": return "block_crouch" if crouch_block else "block_stand"
@@ -125,6 +139,18 @@ func feed(inp: Dictionary) -> void:
 			press[bit] += 1
 			if press[bit] >= SimConst.PRESS_BUFFER: press.erase(bit)
 	prev_buttons = b
+	var rel := ((1 if inp.right else 0) - (1 if inp.left else 0)) * facing
+	tap_t += 1
+	if tap_t > SimConst.DASH_WINDOW: tap_dir = 0
+	if dash_req != 0:
+		dash_age += 1
+		if dash_age > SimConst.DASH_BUFFER: dash_req = 0
+	if rel != 0 and rel != prev_rel:
+		if tap_dir == rel and tap_t <= SimConst.DASH_WINDOW:
+			dash_req = rel; dash_age = 0; tap_dir = 0
+		else:
+			tap_dir = rel; tap_t = 0
+	prev_rel = rel
 
 func _take(bit: int) -> bool:
 	if press.has(bit):
@@ -155,10 +181,17 @@ func step(inp: Dictionary) -> void:
 			if st > SimConst.GETUP: set_state("idle")
 		"thrown":
 			if st >= SimConst.THROW_RELEASE: _launch(throw_vx, throw_vy, true)
+		"dash":
+			var dd: Dictionary = stats.dash["f" if dash_dir > 0 else "b"]
+			if st > int(dd.ticks): vx = 0.0; set_state("idle")
+			elif st > int(dd.ticks) - int(dd.get("rec", 0)): vx = 0.0
 		"prejump":
 			if st >= SimConst.PREJUMP:
-				vy = SimConst.JUMP_VY * stats.jump
-				vx = facing * (SimConst.JUMP_FWD if jump_dir > 0 else SimConst.JUMP_BACK if jump_dir < 0 else 0.0) * stats.jump
+				if hop:
+					vy = float(stats.hop.vy); vx = facing * float(stats.hop.vx)
+				else:
+					vy = SimConst.JUMP_VY * stats.jump
+					vx = facing * (SimConst.JUMP_FWD if jump_dir > 0 else SimConst.JUMP_BACK if jump_dir < 0 else 0.0) * stats.jump
 				air_used = false
 				set_state("air")
 	if actionable(): _step_actionable(inp)
@@ -176,8 +209,10 @@ func _step_actionable(inp: Dictionary) -> void:
 	var mid := _pick_ground_move(inp.down and not inp.up)
 	if mid != "":
 		_start_move(moves[mid], false); return
-	if inp.up:
-		jump_dir = rel; vx = 0.0
+	if dash_req != 0 and not inp.up and _start_dash(dash_req):
+		dash_req = 0
+	elif inp.up:
+		jump_dir = rel; vx = 0.0; hop = false
 		set_state("prejump")
 	elif inp.down:
 		vx = 0.0; set_state("crouch")
@@ -188,13 +223,35 @@ func _step_actionable(inp: Dictionary) -> void:
 	else:
 		vx = 0.0; set_state("idle")
 
+## Double-tap: a dash if the fighter has one in that direction, else a short hop step forward (data stats.hop). False if neither.
+func _start_dash(dir: int) -> bool:
+	var key := "f" if dir > 0 else "b"
+	var dd = stats.get("dash", {}).get(key)
+	if dd != null:
+		dash_dir = dir; dash_speed = float(dd.speed)
+		vx = facing * dir * dash_speed
+		if int(dd.get("invuln", 0)) > 0: invuln = int(dd.invuln)
+		set_state("dash")
+		return true
+	if dir > 0 and stats.has("hop"):
+		jump_dir = 1; vx = 0.0; hop = true
+		set_state("prejump")
+		return true
+	dash_req = 0
+	return false
+
+## Playback speed of the walk clip for the current locomotion: dashes run the clip at their own speed.
+func move_speed() -> float:
+	if state == "dash": return dash_speed
+	return float(stats.walk_f) if state == "walk_f" else float(stats.walk_b)
+
 ## Move id for the buffered press with the highest priority, "" if none. crouching picks the 2X variant when the fighter has one.
 func _pick_ground_move(crouching: bool) -> String:
 	if moves.has("throw") and _take(SimConst.THROW): return "throw"
 	for pair in SimConst.ATTACK_BUTTONS:
 		var mid: String = pair[0]
 		if crouching and moves.has("2" + mid): mid = "2" + mid
-		if not moves.has(mid) or moves[mid].kind != "ground" or not press.has(pair[1]): continue
+		if not moves.has(mid) or not (moves[mid].kind == "ground" or (mid == "S" and moves[mid].kind == "throw")) or not press.has(pair[1]): continue
 		_take(pair[1])
 		return mid
 	return ""
@@ -204,6 +261,7 @@ func _start_move(m: Dictionary, keep_chain: bool) -> void:
 	cur = m; connected = false; hits_done = []
 	vx = 0.0
 	chain = chained if keep_chain else []
+	armor_left = int(m.armor.hits) if m.has("armor") else 0
 	chain.append(m.weight)
 	state = "airatk" if m.kind == "air" else "attack"
 	st = 1
@@ -250,7 +308,7 @@ func _step_air() -> void:
 	y += vy - stats.gravity / 2.0
 	vy -= stats.gravity
 	if y <= 0.0 and vy < 0.0:
-		y = 0.0; vy = 0.0; vx = 0.0; jump_dir = 0
+		y = 0.0; vy = 0.0; vx = 0.0; jump_dir = 0; hop = false
 		var lag := 0
 		if state == "airatk" and not connected: lag = int(cur.get("land_lag", 0))
 		cur = {}; connected = false; chain = []
@@ -279,6 +337,10 @@ func _launch(lvx: float, lvy: float, hard: bool) -> void:
 	set_state("launched")
 
 # ---------------------------------------------------------------- being hit
+
+## Armoured startup: while the move's armour window is open and a hit is left, a hit costs damage but does not interrupt the move.
+func armored() -> bool:
+	return state == "attack" and armor_left > 0 and cur.has("armor") and st >= int(cur.armor.from) and st <= int(cur.armor.to)
 
 ## Apply one connecting hit. away = screen direction from the attacker to this fighter. Returns damage dealt.
 func receive_hit(h: Dictionary, away: int, att_pwr: float) -> int:
@@ -327,8 +389,9 @@ func receive_block(h: Dictionary, away: int) -> void:
 
 ## Grabbed: held for THROW_RELEASE ticks, then thrown into a hard knockdown. The damage lands when the tech window closes
 ## (WorldSim calls apply_throw_damage); a tech cancels it.
-func receive_throw(dmg: int, away: int, launch: Array, stop: int, attacker: int) -> void:
+func receive_throw(dmg: int, away: int, launch: Array, stop: int, attacker: int, notech := false) -> void:
 	combo_hits = 1
+	throw_notech = notech
 	throw_dmg = dmg; throw_att = attacker
 	hitstop = stop
 	vx = 0.0; kb = 0.0; cur = {}; connected = false; chain = []; crouch_block = false
@@ -357,11 +420,11 @@ func to_world(b: Array) -> Rect2:
 	return Rect2(x + bx, y + b[1], b[2], b[3])
 
 func push_box() -> Rect2:
-	return to_world(SimConst.BOXES[stance()].push)
+	return to_world(boxes[stance()].push)
 
 func hurt_boxes() -> Array[Rect2]:
 	var out: Array[Rect2] = []
-	for b in SimConst.BOXES[stance()].hurt: out.append(to_world(b))
+	for b in boxes[stance()].hurt: out.append(to_world(b))
 	return out
 
 ## Hit entries of the current move that are live this tick and have not connected yet: [[index, hit]...].
@@ -384,7 +447,7 @@ func snapshot() -> Dictionary:
 ## Everything the simulation reads back, for rollback: save() copies it, restore() puts it back. `cur` is stored as its move id.
 const STATE := ["hp", "x", "y", "vx", "vy", "kb", "facing", "state", "st", "jump_dir", "hitstop", "stun_len", "invuln", "connected",
 	"hits_done", "chain", "air_used", "hit_heavy", "crouch_block", "hard_kd", "ko", "juggle", "combo_hits", "press", "prev_buttons",
-	"throw_vx", "throw_vy", "throw_dmg", "throw_att"]
+	"throw_vx", "throw_vy", "throw_dmg", "throw_att", "throw_notech", "prev_rel", "tap_dir", "tap_t", "dash_req", "dash_age", "dash_dir", "dash_speed", "hop", "armor_left"]
 
 func save() -> Dictionary:
 	var d := { "cur": cur.get("id", "") }
