@@ -1,8 +1,22 @@
-# Pixel Brawlers v2 (Godot 4): build plan
+# REDLINE (Godot 4): build plan
 
 Rev 4 (2026-10-21): platforms are now desktop, web and mobile (multiplayer later), the next gate is a feel gate, and moves are hand-keyed poses. Rev 3 (2026-10-20) replaced rev 2, which assumed pixel art. Art direction is in `docs/ART_DIRECTION.md`; the owner's answers (web first, steampunk without elements, roster 2 then 6) are recorded there.
 
 The product: a 2.5D steampunk anime fighter. Characters are 3D cel-shaded and gameplay stays on a 2D plane. It ships on **desktop (Windows first, best quality), web and mobile**, and the deterministic sim keeps online rollback multiplayer possible.
+
+## Rev 5 (owner, 2026-10-22)
+- **Name: REDLINE** (it was Pixel Brawlers). The brand colour is REDLINE red #e3262f. The loader, title, menus, tooltips and HUD all follow the brand and the art style. The name lives only in `web/brand.json` and the project/export settings.
+- **The look is 2D anime animation, built on 3D rigs** (the Guilty Gear Strive / Granblue Versus method; owner's choice over true sprites or cut-out puppets). Every frame must read as flat cel art:
+  - **Per-character fixed lighting.** The light rides with the character instead of coming from the scene.
+  - **One hard shadow tone.**
+  - **Hand-tuned face shadows** (face-normal transfer or a shadow-threshold map).
+  - **Thin bright rim.**
+  - **Ink outlines with constant screen width.**
+  - **12 fps held poses.**
+  - **2D painted stages.** Parallax layers from the owner's art (ART_PROMPTS image 5) replace the 3D kit stage; the Kenney Pirate Kit is shelved.
+  - **2D FX and onomatopoeia.**
+  - **Sound:** the synth placeholders go; the CC0 Kenney packs (F8, F9) come in now, and music follows later.
+- **Look gates are judged side by side with the references** (JoJo ASB, Strive, Granblue Versus). Passing mechanics no longer passes a look gate.
 
 ## Rev 4 changes (owner playtest, 2026-10-21)
 - **Hybrid renderer:** per-platform renderer overrides. Desktop uses Forward+ (MSAA 4x plus TAA or SMAA, better shadows, glow on the brass emission). Web and mobile use Compatibility (MSAA 4x plus FXAA, device pixel ratio up to 2). One toon shader and outline compile on both. The web budget below applies to web and mobile only.

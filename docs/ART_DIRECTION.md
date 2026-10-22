@@ -1,3 +1,5 @@
+> **Rev 5 (2026-10-22): the game is REDLINE, and the look is 2D anime animation on 3D rigs with painted 2D stages. `docs/ART_PROMPTS.md` holds the current style block and palette (REDLINE red #e3262f is the brand accent). Where this file disagrees, ART_PROMPTS and GODOT_PLAN rev 5 win.**
+
 # Art direction: steampunk 2.5D anime fighter
 
 Owner decision (2026-10-19): a steampunk fighting game with 3D cel-shaded anime characters and semi-3D environments that move like real places. The pixel-art direction is dropped. That supersedes the fighter kit in `ASSETS.md` and the pixel style in `ART_PROMPTS.md`.
