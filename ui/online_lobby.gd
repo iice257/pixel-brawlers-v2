@@ -164,7 +164,7 @@ func _process(dt: float) -> void:
 		if _status: _status.text = "OPPONENT FOUND"
 		flow.start_online(link)
 		return
-	if phase == "joining" and _age > 25.0:
+	if phase == "joining" and _age > 60.0:
 		_close_link(); _fail("NO RESPONSE FROM THAT ROOM")
 
 func _exit_tree() -> void:
