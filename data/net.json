@@ -1,6 +1,6 @@
 {
-	"signal_type": "http",
+	"signal_type": "supabase",
 	"signal_url": "",
-	"url": "",
-	"anon_key": ""
+	"url": "https://srilsjhexoxctatobkpk.supabase.co",
+	"anon_key": "sb_publishable_827UjNaZm7_WUF_ohY0y5A_5JqcLKDc"
 }

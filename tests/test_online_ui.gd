@@ -65,4 +65,5 @@ func test_supabase_channel_routes_broadcasts_to_the_right_role() -> void:
 	assert_eq(got[0].t, "hello")
 
 func test_signalling_backend_is_chosen_from_config() -> void:
-	assert_null(NetConfig.make_signal(true), "nothing configured: no signalling")
+	var ch := NetConfig.make_signal(true)
+	assert_true(ch is SignalSupabase, "data/net.json selects the Supabase Realtime channel")
