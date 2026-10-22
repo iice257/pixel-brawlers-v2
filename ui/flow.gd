@@ -122,6 +122,7 @@ func _show(name: String) -> void:
 		"menu": screen = _menu()
 		"controls": screen = _controls()
 		"options": screen = _options()
+		"credits": screen = _credits()
 		"select": screen = _select()
 		"stage": screen = _stage()
 		"vs": screen = _vs()
@@ -212,6 +213,7 @@ func _menu() -> Control:
 		["ONLINE", func(): _goto("online")],
 		["CONTROLS", func(): _goto("controls")],
 		["OPTIONS", func(): _goto("options")],
+		["CREDITS", func(): _goto("credits")],
 	]
 	if not OS.has_feature("web"): items.append(["QUIT", func(): get_tree().quit()])
 	var first: Button
@@ -232,6 +234,26 @@ func _menu() -> Control:
 	first.call_deferred("grab_focus")
 	var hint := _label("ARROWS / WASD / D-PAD MOVE    ENTER / A SELECT    ESC / B BACK", 22, BRASS, 4); hint.position = Vector2(100, 660)
 	r.add_child(hint)
+	return r
+
+const CREDITS := [
+	["ANNOUNCER", "DRAGON Announcer Audio Pack by VoiceBosch (SoundBiter), CC BY-SA 4.0"],
+	["SWISHES", "Swishes Sound Pack by artisticdude, CC0"],
+	["IMPACTS, VOICEOVER, UI SOUNDS", "Kenney, CC0"],
+]
+
+func _credits() -> Control:
+	var r := _root()
+	var t := _label("CREDITS", 90, STEAM); t.position = Vector2(100, 60); r.add_child(t)
+	var y := 190.0
+	for c in CREDITS:
+		var h := _label(c[0], 30, BRASS, 4); h.position = Vector2(100, y); r.add_child(h)
+		var d := _label(c[1], 28, STEAM, 4); d.position = Vector2(100, y + 40); d.size = Vector2(1080, 70)
+		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		r.add_child(d); y += 110.0
+	var col := _column(100, y + 20)
+	var back := _button("BACK", func(): _goto("menu")); col.add_child(back); r.add_child(col)
+	back.call_deferred("grab_focus")
 	return r
 
 func _tier_text() -> String:

@@ -357,7 +357,7 @@ func _present(dt: float, before: String, events: Array) -> void:
 				sfx.play("ko")
 	for f in match_sim.world.fighters:      # swish just before the active frames
 		if f.attacking() and f.cur.has("startup") and f.st == int(f.cur.startup) and f.cur.get("kind", "") != "throw":
-			sfx.play("whoosh", 1.35 if f.cur.weight <= 1 else 1.0 if f.cur.weight == 2 else 0.75)
+			sfx.play("whoosh_heavy" if f.cur.weight >= 3 else "whoosh_light")   # L / M light set, H / S heavy set
 	shake *= 0.84
 	nudge *= 0.88
 	for v in views: v.present(dt, match_sim.world.tick)

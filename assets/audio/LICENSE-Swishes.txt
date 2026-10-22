@@ -1,0 +1,4 @@
+Swishes Sound Pack
+Author: artisticdude
+Source: https://opengameart.org/content/swishes-sound-pack
+Licence: CC0 1.0 (public domain dedication), per the OpenGameArt page. Files in swish/ are unmodified.

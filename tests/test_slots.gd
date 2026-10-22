@@ -11,5 +11,5 @@ func test_fx_slots_fall_back_to_the_spark() -> void:
 
 func test_missing_voice_line_plays_tone() -> void:
 	var p := Sfx.Pool.new(2); add_child_autofree(p)
-	p.play("voice_ko")
-	assert_eq(p.players[0].stream, Sfx.tone(), "voice_ko has no file: placeholder tone")
+	p.play("voice_time")
+	assert_eq(p.players[0].stream, Sfx.tone(), "voice_time has no file: placeholder tone")

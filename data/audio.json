@@ -201,7 +201,7 @@
   "layers": [
    {
     "files": [
-     "res://assets/audio/voice/round_1.ogg"
+     "res://assets/audio/voice/dragon_round_1.ogg"
     ],
     "pitch": [
      1.0,
@@ -216,7 +216,7 @@
   "layers": [
    {
     "files": [
-     "res://assets/audio/voice/round_2.ogg"
+     "res://assets/audio/voice/dragon_round_2.ogg"
     ],
     "pitch": [
      1.0,
@@ -231,7 +231,7 @@
   "layers": [
    {
     "files": [
-     "res://assets/audio/voice/round_3.ogg"
+     "res://assets/audio/voice/dragon_round_3.ogg"
     ],
     "pitch": [
      1.0,
@@ -246,7 +246,7 @@
   "layers": [
    {
     "files": [
-     "res://assets/audio/voice/final_round.ogg"
+     "res://assets/audio/voice/dragon_final_round.ogg"
     ],
     "pitch": [
      1.0,
@@ -261,7 +261,7 @@
   "layers": [
    {
     "files": [
-     "res://assets/audio/voice/fight.ogg"
+     "res://assets/audio/voice/dragon_fight.ogg"
     ],
     "pitch": [
      1.0,
@@ -344,6 +344,62 @@
      1.03
     ],
     "db": -4.0
+   }
+  ]
+ },
+ "whoosh_light": {
+  "bus": "SFX",
+  "layers": [
+   {
+    "files": [
+     "res://assets/audio/swish/swish-2.wav",
+     "res://assets/audio/swish/swish-11.wav",
+     "res://assets/audio/swish/swish-12.wav",
+     "res://assets/audio/swish/swish-13.wav"
+    ],
+    "pitch": [
+     0.95,
+     1.1
+    ],
+    "db": -6.0
+   }
+  ]
+ },
+ "whoosh_heavy": {
+  "bus": "SFX",
+  "layers": [
+   {
+    "files": [
+     "res://assets/audio/swish/swish-1.wav",
+     "res://assets/audio/swish/swish-3.wav",
+     "res://assets/audio/swish/swish-4.wav",
+     "res://assets/audio/swish/swish-5.wav",
+     "res://assets/audio/swish/swish-6.wav",
+     "res://assets/audio/swish/swish-7.wav",
+     "res://assets/audio/swish/swish-8.wav",
+     "res://assets/audio/swish/swish-9.wav",
+     "res://assets/audio/swish/swish-10.wav"
+    ],
+    "pitch": [
+     0.9,
+     1.05
+    ],
+    "db": -4.0
+   }
+  ]
+ },
+ "voice_ko": {
+  "bus": "Voice",
+  "layers": [
+   {
+    "files": [
+     "res://assets/audio/voice/dragon_ko.ogg"
+    ],
+    "pitch": [
+     1.0,
+     1.0
+    ],
+    "db": 0.0
    }
   ]
  }

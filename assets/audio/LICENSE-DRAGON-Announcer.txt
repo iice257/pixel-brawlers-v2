@@ -1,0 +1,5 @@
+DRAGON - Announcer Audio Pack (SoundBiter SFX library)
+Author: VoiceBosch (preferred attribution: VoiceBosch)
+Source: https://opengameart.org/content/dragon-announcer-audio-pack
+Licence: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0), https://creativecommons.org/licenses/by-sa/4.0/
+Changes: selected six lines (Fight, First/Second/Third Round, Death Round, K.O.) and converted WAV to Ogg Vorbis (dragon_*.ogg in voice/).
