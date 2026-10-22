@@ -197,16 +197,16 @@ func _tick(dt: float, inputs: Array) -> void:
 			"hit":
 				shake = maxf(shake, clampf(0.02 + float(e.dmg) * 0.0007, 0.02, 0.09) * 0.5)   # half amplitude; the killing blow gets the full "ko" kick
 				if e.heavy: nudge = dir * 0.2
-				_spark(d, dir, 0.55 if e.heavy else 0.36, Color("fff3c0") if e.heavy else Color("ffd35a"), e.get("level", "mid"))
+				_spark(d, dir, 0.55 if e.heavy else 0.36, Color("fff3c0") if e.heavy else Color("ffd35a"), e.get("level", "mid"), "hit_h" if e.heavy else "hit_l" if int(e.dmg) < 55 else "hit_m")
 				sfx.play("hit_h" if e.heavy else "hit_l" if int(e.dmg) < 55 else "hit_m")
 			"throw":
 				shake = maxf(shake, 0.07); nudge = dir * 0.25
-				_spark(d, dir, 0.6, Color("fff3c0"), "mid"); sfx.play("hit_h", 0.85)
+				_spark(d, dir, 0.6, Color("fff3c0"), "mid", "hit_h"); sfx.play("hit_h", 0.85)
 			"grab": sfx.play("block", 0.7)
 			"tech": shake = maxf(shake, 0.03); sfx.play("block", 1.3)
 			"block":
 				shake = maxf(shake, 0.012)
-				_spark(d, dir, 0.18, Color("9fd0ff"), "mid"); sfx.play("block")
+				_spark(d, dir, 0.18, Color("9fd0ff"), "mid", "block"); sfx.play("block")
 			"ko":
 				shake = maxf(shake, 0.12); nudge = dir * 0.3
 				sfx.play("ko")
@@ -286,6 +286,8 @@ func _announce() -> void:
 	match match_sim.phase:
 		"call": sfx.play("voice_final_round" if match_sim.final_round else "voice_round_%d" % clampi(match_sim.round_no, 1, 3))
 		"fight": sfx.play("voice_fight")
+		"ko": sfx.play("voice_ko")
+		"timeup": sfx.play("voice_time")
 		"over": sfx.play("voice_perfect" if match_sim.perfect else "voice_winner")
 
 func _banner() -> String:
@@ -317,8 +319,13 @@ func _rect(im: ImmediateMesh, r: Rect2, c: Color) -> void:
 		im.surface_set_color(c); im.surface_add_vertex(pts[(i + 1) % 4])
 
 ## Impact burst at the defender: a flat star that pops and fades in about 0.15 s (additive, unshaded, facing the side camera).
-func _spark(d: FighterSim, dir: float, size: float, color: Color, level: String) -> void:
+## Effect by id (data/fx.json): the pack's sprite sheet when it is there, else the built-in star spark.
+func _spark(d: FighterSim, dir: float, size: float, color: Color, level: String, id := "hit_m") -> void:
 	if d == null: return
+	if FxSheet.exists(id):
+		var y0 := 0.35 if level == "low" else 1.15 + d.y * W
+		add_child(FxSheet.make(id, Vector3((d.x - CX) * W - dir * 0.18, y0, 0.6), dir < 0.0))
+		return
 	var n := MeshInstance3D.new(); n.mesh = spark_mesh
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED

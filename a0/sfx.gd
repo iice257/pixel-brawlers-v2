@@ -42,6 +42,19 @@ static func whoosh() -> AudioStreamWAV:
 	_cache["whoosh"] = w
 	return w
 
+## Placeholder for an announcer line whose file is not there yet: a short falling two-note tone. The on-screen banner carries the call.
+static func tone() -> AudioStreamWAV:
+	if _cache.has("tone"): return _cache["tone"]
+	var n := int(0.22 * RATE)
+	var data := PackedByteArray(); data.resize(n * 2)
+	for i in n:
+		var f := 660.0 if i < n / 2 else 495.0
+		data.encode_s16(i * 2, int(sin(TAU * f * i / RATE) * 0.25 * sin(PI * float(i % (n / 2)) / (n / 2)) * 30000.0))
+	var w := AudioStreamWAV.new()
+	w.format = AudioStreamWAV.FORMAT_16_BITS; w.mix_rate = RATE; w.stereo = false; w.data = data
+	_cache["tone"] = w
+	return w
+
 ## Round-robin pool of players so overlapping hits and layers don't cut each other off.
 class Pool extends Node:
 	var players: Array[AudioStreamPlayer] = []
@@ -57,7 +70,9 @@ class Pool extends Node:
 	## pitch is a multiplier on each layer's own random pitch; db is added to its gain.
 	func play(id: String, pitch := 1.0, db := 0.0) -> void:
 		var e: Dictionary = Sfx.doc().get(id, {})
-		if e.is_empty(): return
+		if e.is_empty() or (e.has("layers") and not ResourceLoader.exists(String(e.layers[0].files[0]))):
+			if id.begins_with("voice_"): _go(Sfx.tone(), "Voice", 1.0, -8.0 + db)      # missing announcer line: tone + banner, nothing breaks
+			return
 		if e.has("synth"): _go(Sfx.whoosh(), e.bus, pitch, db); return
 		for layer in e.layers:
 			var f: String = layer.files[randi() % layer.files.size()]

@@ -1,0 +1,9 @@
+{
+	"_doc": "Effect slots by id. sheet = sprite-sheet png (empty or missing: the built-in star spark plays); frames = [columns, rows]; fps; size in metres; additive blends the sheet over the scene.",
+	"hit_l": { "sheet": "res://assets/fx/hit_l.png", "frames": [5, 2], "fps": 30, "size": 0.7, "additive": true },
+	"hit_m": { "sheet": "res://assets/fx/hit_m.png", "frames": [5, 2], "fps": 30, "size": 0.9, "additive": true },
+	"hit_h": { "sheet": "res://assets/fx/hit_h.png", "frames": [5, 2], "fps": 30, "size": 1.2, "additive": true },
+	"block": { "sheet": "res://assets/fx/block.png", "frames": [5, 1], "fps": 30, "size": 0.6, "additive": true },
+	"slash": { "sheet": "res://assets/fx/slash.png", "frames": [5, 2], "fps": 30, "size": 1.4, "additive": true },
+	"steam": { "sheet": "res://assets/fx/steam.png", "frames": [4, 4], "fps": 24, "size": 1.0, "additive": false }
+}

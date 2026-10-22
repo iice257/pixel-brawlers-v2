@@ -36,6 +36,7 @@ func setup(fighter: FighterSim, model_id: String, swap: float) -> void:
 	model.add_child(player)
 	player.root_node = player.get_path_to(model)
 	player.add_animation_library("", load("res://fighters/shared/anims.res"))
+	if AnimSource.library() != null: player.add_animation_library("ext", AnimSource.library())
 	if _meta.is_empty():
 		_meta = JSON.parse_string(FileAccess.get_file_as_string("res://fighters/shared/clip_meta.json"))
 	dress(skeleton, model_id)
@@ -47,7 +48,7 @@ func setup(fighter: FighterSim, model_id: String, swap: float) -> void:
 	turn = deg_to_rad(90.0 * fighter.facing)
 
 func _len(clip: String) -> float:
-	return float(_meta[clip].length)
+	return float(_meta[clip].length) if _meta.has(clip) else player.get_animation(clip).length
 
 func _peak(clip: String) -> float:
 	return float(_meta[clip].peak_t)
@@ -57,6 +58,9 @@ func _pose() -> Array:
 	var f := sim
 	var a := f.anim()
 	var loop_t := floorf(clock * STEP_FPS) / STEP_FPS
+	if AnimSource.has(a):
+		var span := float(maxi(int(f.cur.startup) + int(f.cur.active) + int(f.cur.recovery), 1)) if f.attacking() else 1.0
+		return AnimSource.resolve(a, float(f.st) / span, loop_t)
 	if f.attacking() and PoseLib.has_pose(a):
 		var b := PoseLib.base(a)
 		return [b[0], b[1], PoseLib.key(a, _phase(f))]
@@ -138,7 +142,7 @@ func present(dt: float, tick: int) -> void:
 	var keyed: bool = not pose[2].is_empty()
 	if keyed: PoseLib.apply(skeleton, pose[2])
 	_exaggerate(skeleton, _hit_k(f), f.state == "hit" and f.hit_heavy)
-	var drop := _ground_drop(skeleton) if (f.state in ["lying", "ko", "getup"]) else PoseLib.floor_drop(skeleton) if (keyed and not f.airborne()) else 0.0
+	var drop := _ground_drop(skeleton) if (f.state in ["lying", "ko", "getup"]) else PoseLib.floor_drop(skeleton) if ((keyed or String(pose[0]).begins_with("ext/")) and not f.airborne()) else 0.0
 	ground = lerpf(ground, drop, 0.5)
 	# lean into the held impact, pull back during wind-up and block
 	var target := 0.0
@@ -205,16 +209,51 @@ static func dress(skel: Skeleton3D, model_id: String) -> void:
 	var path := "res://fighters/%s/look.json" % model_id
 	if not FileAccess.file_exists(path): return
 	var look: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
+	_outfit(skel, look.get("outfit", {}))
+	_textures(skel, look.get("textures", {}))
 	for acc in look.get("accessories", []):
 		var b := skel.find_bone(acc.bone)
 		if b < 0: continue
 		var att := BoneAttachment3D.new()
 		att.bone_name = acc.bone
 		skel.add_child(att)
-		var prop: Node3D = (load("res://fighters/shared/props/%s.tscn" % acc.prop) as PackedScene).instantiate()
+		var scene_path: String = acc.scene if acc.has("scene") else "res://fighters/shared/props/%s.tscn" % acc.prop
+		if not ResourceLoader.exists(scene_path): att.queue_free(); continue
+		var prop: Node3D = (load(scene_path) as PackedScene).instantiate()
 		var p: Array = acc.get("pos", [0, 0, 0]); var r: Array = acc.get("rot", [0, 0, 0]); var sc: Array = acc.get("scale", [1, 1, 1])
 		# offsets are authored in T-pose model space; convert through the bone's rest frame so any rig orientation works
 		var rb := skel.get_bone_global_rest(b).basis.orthonormalized()
 		prop.position = rb.inverse() * Vector3(p[0], p[1], p[2])
 		prop.basis = rb.inverse() * Basis.from_euler(Vector3(deg_to_rad(r[0]), deg_to_rad(r[1]), deg_to_rad(r[2]))) * Basis.from_scale(Vector3(sc[0], sc[1], sc[2]))
 		att.add_child(prop)
+
+## Outfit slot: look.json "outfit": {"scene": res path, "hide": [material names]}. The scene's MeshInstance3Ds (skinned to the humanoid skeleton,
+## e.g. a retargeted VRoid/Booth outfit) join this skeleton; the listed base materials are hidden. No scene file yet: the accessory props stay.
+static func _outfit(skel: Skeleton3D, o: Dictionary) -> void:
+	if o.is_empty() or not ResourceLoader.exists(String(o.get("scene", ""))): return
+	for mi in skel.get_children():
+		if mi is MeshInstance3D and mi.mesh:
+			for i in mi.mesh.get_surface_count():
+				var mat: Material = mi.mesh.surface_get_material(i)
+				if mat and mat.resource_name in o.get("hide", []): mi.set_surface_override_material(i, _invisible())
+	var root := (load(String(o.scene)) as PackedScene).instantiate()
+	for mi in root.find_children("*", "MeshInstance3D", true, false):
+		mi.get_parent().remove_child(mi); skel.add_child(mi); mi.skeleton = NodePath("..")
+	root.queue_free()
+
+static func _invisible() -> Material:
+	var m := StandardMaterial3D.new(); m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA; m.albedo_color = Color(1, 1, 1, 0)
+	return m
+
+## Face / hair slot: look.json "textures": {"<material name>": res path} replaces that material's albedo texture when the file exists.
+static func _textures(skel: Skeleton3D, t: Dictionary) -> void:
+	for mi in skel.get_children():
+		if not (mi is MeshInstance3D and mi.mesh): continue
+		for i in mi.mesh.get_surface_count():
+			var mat: Material = mi.mesh.surface_get_material(i)
+			if mat == null or not t.has(mat.resource_name) or not ResourceLoader.exists(String(t[mat.resource_name])): continue
+			var d: Material = mat.duplicate()
+			var tex := load(String(t[mat.resource_name])) as Texture2D
+			if d is BaseMaterial3D: d.albedo_texture = tex
+			elif d is ShaderMaterial: d.set_shader_parameter("albedo_tex", tex)
+			mi.set_surface_override_material(i, d)

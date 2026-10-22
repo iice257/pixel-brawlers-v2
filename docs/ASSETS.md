@@ -83,3 +83,14 @@ Drop-ins work because every fighter animation is addressed by contract names (ne
 |---|---|---|---|---|---|
 | Kenney Pirate Kit 2.1 (props: ship parts, platforms, masts, flags, crates, barrels, cannons, rocks) | https://kenney.nl/assets/pirate-kit | CC0 1.0 (confirmed on the kit page and in its License.txt) | Kenney (www.kenney.nl), optional | `assets/src/kenney-pirate-kit/` (source only, gitignored, GLB under `pkg/Models/GLB format`) | 2026-10-21 |
 | Bangers Regular (HUD banners and timer) | https://github.com/google/fonts/tree/main/ofl/bangers | OFL 1.1 (`assets/fonts/OFL-Bangers.txt`) | Vernon Adams, optional | `assets/fonts/Bangers-Regular.ttf` | 2026-10-21 |
+
+
+## Drop-in slots for bought assets (2026-10-22)
+
+Everything below runs on placeholders today; the paid files drop in with no code change. Missing files never break the game.
+
+1. **Animation** (`data/anim_map.json`, `fighters/anim_source.gd`). Put the FBX in `assets/anims/src/`, bake it to `assets/anims/ext.res` (an AnimationLibrary retargeted to the humanoid bone names, same as `fighters/shared/anims.res`), then add one line under `map`: `"2L": {"clip": "Crouch_Punch", "mode": "move", "pose": "2L"}`. `mode`: `loop` (rate), `hold` (t), `move` (spans startup+active+recovery). `pose` optionally layers a PoseLib key on top. Unmapped names keep the hand-keyed pose or UAL clip.
+2. **Outfit** (`fighters/<id>/look.json` -> `outfit`): `{"scene": "res://assets/outfits/x.scn", "hide": ["Tops"]}` adds skinned meshes to the skeleton and hides the listed base materials. `accessories` entries accept `"scene"` as well as `"prop"`. Placeholder: the props kit.
+3. **Face and hair** (`look.json` -> `textures`): `{"Face": "res://assets/outfits/face.png", "Hair": "..."}` swaps that material's albedo when the file exists.
+4. **FX** (`data/fx.json`): ids hit_l, hit_m, hit_h, block, slash, steam; each names a sprite-sheet png under `assets/fx/` and its [columns, rows], fps and size. Missing sheet: the built-in star spark.
+5. **Voice** (`data/audio.json`): ids voice_round_1..3, voice_final_round, voice_fight, voice_ko, voice_time, voice_winner, voice_perfect. A missing id plays a short tone; the on-screen banner carries the call.

@@ -1,0 +1,5 @@
+{
+	"_doc": "Per sim anim name (state or move id): a purchased/imported clip overrides the hand-keyed PoseLib pose or UAL clip. clip = name in assets/anims/ext.res; mode = loop | hold | move (clip spans the move) ; rate = playback multiplier; pose = optional PoseLib key whose rotations are layered on top.",
+	"clips": "res://assets/anims/ext.res",
+	"map": {}
+}
