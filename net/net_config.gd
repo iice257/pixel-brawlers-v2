@@ -18,7 +18,7 @@ static func _override() -> String:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--signal="): return a.trim_prefix("--signal=")
 	if OS.has_feature("web"):
-		var q = JavaScriptBridge.eval("new URLSearchParams(location.search).get('signal') || ''")
+		var q = JavaScriptBridge.eval("new URLSearchParams(location.search).get('signal') || ''", true)
 		if q is String and q != "": return q
 	var c := ConfigFile.new()
 	if c.load(SETTINGS) == OK: return String(c.get_value("online", "signal_url", ""))

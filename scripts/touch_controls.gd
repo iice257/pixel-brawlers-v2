@@ -41,8 +41,8 @@ static func wanted() -> bool:
 	if OS.has_feature("android") or OS.has_feature("ios"): return true
 	if OS.has_feature("web_android") or OS.has_feature("web_ios"): return true
 	if OS.has_feature("web"):
-		var js = JavaScriptBridge.eval("(window.matchMedia && matchMedia('(pointer: coarse)').matches) || /[?&]touch=1/.test(location.search)")
-		return js == true
+		var js = JavaScriptBridge.eval("((window.matchMedia && matchMedia('(pointer: coarse)').matches) || /[?&]touch=1/.test(location.search)) ? 1 : 0", true)
+		return js != null and int(js) == 1
 	return false
 
 func _ready() -> void:
