@@ -5,7 +5,7 @@ config_version=5
 
 config/name="REDLINE"
 config/description="2D pixel fighting game (v2, Godot 4)."
-run/main_scene="res://a0/a0_fight.tscn"
+run/main_scene="res://ui/flow.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://web/icon.svg"
 boot_splash/show_image=false

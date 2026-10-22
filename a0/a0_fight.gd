@@ -31,7 +31,18 @@ var stage: ParallaxStage
 var sfx: Sfx.Pool
 var sparks: Array = []        # [node, age, life, size]
 var spark_mesh: ArrayMesh
-const NAMES := ["KESTREL", "BRIGGS"]   # roster display names (placeholder rig for both until the characters land)
+const NAMES := ["KESTREL", "BRIGGS"]   # default display names; the front end passes its own through cfg
+const DUMMY := ["stand", "crouch", "block all", "random block"]
+signal exit(action: String)           # "rematch" | "select" | "menu": the front end decides what comes next
+var cfg := {}                         # set by the front end before the node enters the tree: mode (versus | cpu | training), tier, names, models
+var names: Array = NAMES
+var cpu: CpuBrain
+var dummy := 0                        # training dummy behaviour, index into DUMMY
+var paused := false
+var pause_menu: VBoxContainer
+var dummy_btn: Button
+var _dummy_t := 0
+var _dummy_block := false
 var rematch: VBoxContainer
 var ko_k := 0.0               # 0..1 how far into the KO slow-mo (palette shift, zoom)
 var banner_pivot: Node2D
@@ -43,6 +54,8 @@ func _ready() -> void:
 	win.content_scale_size = Vector2i(1280, 720)
 	win.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 	win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	if cfg.has("names"): names = cfg.names
+	if cfg.has("models"): model_ids = cfg.models.duplicate()
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--shot="): shot = a.trim_prefix("--shot=")
 		elif a.begins_with("--ticks="): shot_ticks = int(a.trim_prefix("--ticks="))
@@ -66,6 +79,7 @@ func _ready() -> void:
 	cam = Camera3D.new()
 	cam.fov = 21.0
 	add_child(cam)
+	if cfg.get("mode", "") == "cpu": cpu = CpuBrain.new(int(cfg.get("tier", 4)), 1, int(Time.get_ticks_usec()))
 	_reset()
 	_build_hud()
 	box_mesh = MeshInstance3D.new()
@@ -99,7 +113,7 @@ func _reset() -> void:
 func _build_stage() -> void:
 	stage = ParallaxStage.new()
 	add_child(stage)
-	stage.setup(env)
+	stage.setup(env, String(cfg.get("stage", "stage1")))
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new(); add_child(layer)
@@ -107,7 +121,7 @@ func _build_hud() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.theme = HudTheme.build()
 	layer.add_child(root)
-	hud = FightHud.new(); hud.names = NAMES; hud.need = match_sim.need; hud.round_seconds = SimConst.ROUND_SECONDS
+	hud = FightHud.new(); hud.names = names; hud.need = match_sim.need; hud.round_seconds = SimConst.ROUND_SECONDS
 	root.add_child(hud)
 	banner_pivot = Node2D.new(); banner_pivot.position = Vector2(640, 190); banner_pivot.skew = -0.16
 	root.add_child(banner_pivot)
@@ -117,19 +131,82 @@ func _build_hud() -> void:
 	info = _label(root, Vector2(40, 64), "HudInfo")
 	hint = _label(root, Vector2(40, 690), "HudHint")
 	hint.text = "P1 %s | F1 help | F2 boxes | F3 debug | R restart" % Controls.describe("p1")
-	hint.visible = false; info.visible = false
+	if cfg.get("mode", "") == "training": hint.text = "TRAINING | dummy: stand | Tab cycles it | F2 boxes | Esc pause"
+	hint.visible = cfg.get("mode", "") == "training"; info.visible = false
 	rematch = VBoxContainer.new()      # end-of-match menu: Rematch / Quit, keyboard and gamepad focus
-	rematch.position = Vector2(490, 410); rematch.size = Vector2(300, 150)
+	rematch.position = Vector2(440, 380); rematch.size = Vector2(400, 220)
 	rematch.add_theme_constant_override("separation", 12)
-	for item in [["REMATCH", _reset], ["QUIT", get_tree().quit]]:
+	var items := [["REMATCH", _rematch], ["CHARACTER SELECT", func(): exit.emit("select")], ["MAIN MENU", func(): exit.emit("menu")]] if not cfg.is_empty() else [["REMATCH", _reset], ["QUIT", get_tree().quit]]
+	for item in items:
 		if item[0] == "QUIT" and OS.has_feature("web"): continue
-		var b := Button.new(); b.text = item[0]; b.focus_mode = Control.FOCUS_ALL
-		b.pressed.connect(func(): sfx.play("ui_confirm"))
-		b.pressed.connect(item[1])
-		b.focus_entered.connect(func(): sfx.play("ui_move"))
-		rematch.add_child(b)
+		var b := _menu_button(item[0]); b.pressed.connect(item[1]); rematch.add_child(b)
 	rematch.hide()
 	root.add_child(rematch)
+	_build_pause(root)
+
+func _menu_button(text: String) -> Button:
+	var b := Button.new(); b.text = text; b.focus_mode = Control.FOCUS_ALL
+	b.pressed.connect(func(): sfx.play("ui_confirm"))
+	b.focus_entered.connect(func(): sfx.play("ui_move"))
+	return b
+
+func _rematch() -> void:
+	_reset()
+	if cpu: cpu.set_tier(cpu.tier)
+
+func _build_pause(root: Control) -> void:
+	pause_menu = VBoxContainer.new(); pause_menu.position = Vector2(440, 230); pause_menu.size = Vector2(400, 300)
+	pause_menu.add_theme_constant_override("separation", 12)
+	var title := Label.new(); title.text = "PAUSED"; title.theme_type_variation = "HudBanner"
+	title.add_theme_font_size_override("font_size", 72); title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	pause_menu.add_child(title)
+	var rows := [["RESUME", func(): _set_pause(false)], ["RESTART", func(): _set_pause(false); _rematch()]]
+	if cfg.get("mode", "") == "training":
+		dummy_btn = _menu_button("DUMMY: " + DUMMY[dummy].to_upper()); dummy_btn.pressed.connect(_next_dummy)
+		pause_menu.add_child(dummy_btn)
+	for r in rows:
+		var b := _menu_button(r[0]); b.pressed.connect(r[1]); pause_menu.add_child(b)
+	if not cfg.is_empty():
+		var q := _menu_button("QUIT TO MENU"); q.pressed.connect(func(): exit.emit("menu")); pause_menu.add_child(q)
+	pause_menu.hide()
+	root.add_child(pause_menu)
+
+func _set_pause(on: bool) -> void:
+	paused = on; pause_menu.visible = on
+	if on: pause_menu.get_child(1).grab_focus()
+
+func _next_dummy() -> void:
+	dummy = (dummy + 1) % DUMMY.size()
+	if dummy_btn: dummy_btn.text = "DUMMY: " + DUMMY[dummy].to_upper()
+	hint.text = "TRAINING | dummy: %s | Tab cycles it | F2 boxes | Esc pause" % DUMMY[dummy]
+
+## P2 input: the human, the CPU brain, or the training dummy.
+func _p2_input() -> Dictionary:
+	match cfg.get("mode", "versus"):
+		"cpu":
+			if cpu and match_sim.inputs_live(): return cpu.think(match_sim.world.fighters)
+			return WorldSim.neutral()
+		"training": return _dummy_input()
+	return _read("p2")
+
+func _dummy_input() -> Dictionary:
+	var i := WorldSim.neutral()
+	var fs := match_sim.world.fighters
+	var low: bool = fs[0].attacking() and not fs[0].cur.get("hits", []).is_empty() and fs[0].cur.hits[0].get("level", "mid") == "low"
+	match DUMMY[dummy]:
+		"crouch": i.down = true
+		"block all": i.buttons = SimConst.BL; i.down = low
+		"random block":
+			_dummy_t -= 1
+			if _dummy_t <= 0: _dummy_t = 20 + (match_sim.world.tick * 7919) % 50; _dummy_block = (match_sim.world.tick * 31) % 3 != 0
+			if _dummy_block: i.buttons = SimConst.BL; i.down = low
+	return i
+
+## Training: no clock, no K.O. (the dummy is topped up when it gets low).
+func _training_rules() -> void:
+	match_sim.timer_ticks = SimConst.ROUND_SECONDS * SimConst.TICK_HZ
+	for f in match_sim.world.fighters:
+		if f.hp < int(f.stats.hp) * 0.25: f.hp = int(f.stats.hp)
 
 func _label(parent: Node, pos: Vector2, variation: String) -> Label:
 	var l := Label.new(); l.position = pos
@@ -138,10 +215,13 @@ func _label(parent: Node, pos: Vector2, variation: String) -> Label:
 	return l
 
 func _unhandled_input(e: InputEvent) -> void:
+	if e.is_action_pressed("pause") and not rematch.visible and seq_dir == "" and shot == "":
+		_set_pause(not paused); get_viewport().set_input_as_handled(); return
 	if e is InputEventKey and e.pressed and not e.echo:
 		if e.physical_keycode == KEY_F2: show_boxes = not show_boxes
 		elif e.physical_keycode == KEY_F3: info.visible = not info.visible
-		elif e.physical_keycode == KEY_F1 or e.physical_keycode == KEY_ESCAPE: help_on = not help_on; hint.visible = help_on
+		elif e.physical_keycode == KEY_F1: help_on = not help_on; hint.visible = help_on
+		elif e.physical_keycode == KEY_TAB and cfg.get("mode", "") == "training": _next_dummy()
 		elif e.physical_keycode == KEY_R: _reset()
 
 func _read(p: String) -> Dictionary:
@@ -241,7 +321,9 @@ func _physics_process(dt: float) -> void:
 		get_viewport().get_texture().get_image().save_png(shot)
 		get_tree().quit()
 		return
-	_tick(dt, _scripted() if script_mode else [_read("p1"), _read("p2")])
+	if paused: return
+	if cfg.get("mode", "") == "training": _training_rules()
+	_tick(dt, _scripted() if script_mode else [_read("p1"), _p2_input()])
 	_cam_follow(false)
 	_hud()
 	_draw_boxes()
@@ -287,7 +369,7 @@ func _banner() -> String:
 		"fight": return "FIGHT!"
 		"ko": return "K.O."
 		"timeup": return "TIME UP"
-		"over": return "DRAW" if match_sim.match_winner < 0 else "%s WINS" % NAMES[match_sim.match_winner]
+		"over": return "DRAW" if match_sim.match_winner < 0 else "%s WINS" % names[match_sim.match_winner]
 	return ""
 
 func _draw_boxes() -> void:
