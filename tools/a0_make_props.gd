@@ -13,7 +13,7 @@ const DARK := Color(0.16, 0.14, 0.17)
 const STEEL := Color(0.5, 0.52, 0.58)
 const COAT := Color(0.12, 0.5, 0.5)
 const COAT_TRIM := Color(0.07, 0.2, 0.24)
-const VENT_RED := Color(3.2, 0.3, 0.12)        # HDR: reads as a glowing vent
+const VENT_RED := Color(2.4, 0.03, 0.02)        # HDR: reads as a glowing vent
 const VENT_TEAL := Color(0.3, 2.6, 2.3)
 const STACHE := Color(0.2, 0.1, 0.06)
 const APRON := Color(0.2, 0.11, 0.08)
@@ -45,6 +45,14 @@ func _add(parent: Node3D, mesh: Mesh, c: Color, pos := Vector3.ZERO, rot := Vect
 func _torus(inner: float, outer: float) -> TorusMesh:
 	var t := TorusMesh.new(); t.inner_radius = inner; t.outer_radius = outer; t.rings = 20; t.ring_segments = 8
 	return t
+
+func _sphere(r: float, segs := 14) -> SphereMesh:
+	var m := SphereMesh.new(); m.radius = r; m.height = r * 2.0; m.radial_segments = segs; m.rings = segs / 2
+	return m
+
+func _capsule(r: float, h: float) -> CapsuleMesh:
+	var m := CapsuleMesh.new(); m.radius = r; m.height = h; m.radial_segments = 16; m.rings = 6
+	return m
 
 func _cyl(r: float, h: float, segs := 16) -> CylinderMesh:
 	var c := CylinderMesh.new(); c.top_radius = r; c.bottom_radius = r; c.height = h; c.radial_segments = segs; c.rings = 1
@@ -165,22 +173,22 @@ func _new_props() -> void:
 	var L_APRON := Color(0.5, 0.3, 0.16).srgb_to_linear()
 	var L_COAT := Color(0.17, 0.78, 0.72).srgb_to_linear()
 	var L_COAT_TRIM := Color(0.06, 0.22, 0.28).srgb_to_linear()
-	# big gauntlet: forearm axis +X (mirrored with scale.x = -1 for the right arm); about 1.6x the standard gauntlet, piston rods on top, glowing red vent
+	# big gauntlet: forearm axis +X (mirrored with scale.x = -1 for the right arm); about 1.6x the standard gauntlet: a rounded shell, a round fist,
+	# piston rods on top, rivets, and glowing red vent rings that wrap the shell so the glow reads from either side of the camera
 	var bg := Node3D.new(); bg.name = "BigGauntlet"
-	_add(bg, _cyl(0.088, 0.22), BRASS, Vector3(0.1, 0, 0), Vector3(0, 0, 90))
-	_add(bg, _cyl(0.098, 0.04), L_DARK, Vector3(-0.02, 0, 0), Vector3(0, 0, 90))
-	_add(bg, _cyl(0.098, 0.04), L_DARK, Vector3(0.21, 0, 0), Vector3(0, 0, 90))
-	var fist := BoxMesh.new(); fist.size = Vector3(0.17, 0.17, 0.17)
-	_add(bg, fist, L_DARK, Vector3(0.32, 0, 0))
-	var knuck := BoxMesh.new(); knuck.size = Vector3(0.05, 0.14, 0.15)
-	_add(bg, knuck, BRASS, Vector3(0.425, 0, 0))
-	for sz in [-0.045, 0.045]:
-		_add(bg, _cyl(0.014, 0.28), STEEL, Vector3(0.18, 0.115, sz), Vector3(0, 0, 90))
-		_add(bg, _cyl(0.026, 0.11), L_DARK, Vector3(0.05, 0.115, sz), Vector3(0, 0, 90))
-	var vent := BoxMesh.new(); vent.size = Vector3(0.07, 0.026, 0.085)
-	_add(bg, vent, VENT_RED, Vector3(0.14, 0.1, 0))
-	_add(bg, vent, VENT_RED, Vector3(0.24, 0.1, 0))
-	_gear(bg, Vector3(0.1, 0.0, 0.09), Vector3(90, 0, 0), 0.04, 0.02, 8)
+	_add(bg, _capsule(0.094, 0.3), BRASS, Vector3(0.12, 0, 0), Vector3(0, 0, 90))
+	_add(bg, _cyl(0.104, 0.04, 20), L_DARK, Vector3(-0.03, 0, 0), Vector3(0, 0, 90))
+	_add(bg, _sphere(0.11), L_DARK, Vector3(0.31, 0, 0), Vector3.ZERO, Vector3(1.05, 1.0, 1.0))
+	_add(bg, _sphere(0.075), BRASS, Vector3(0.405, 0, 0), Vector3.ZERO, Vector3(0.6, 1.1, 1.1))
+	for sx in [0.15, 0.25]: _add(bg, _torus(0.086, 0.13), VENT_RED, Vector3(sx, 0, 0), Vector3(0, 0, 90))
+	for sz in [-0.05, 0.05]:
+		_add(bg, _cyl(0.014, 0.3, 10), STEEL, Vector3(0.17, 0.128, sz), Vector3(0, 0, 90))
+		_add(bg, _cyl(0.027, 0.11, 12), L_DARK, Vector3(0.04, 0.128, sz), Vector3(0, 0, 90))
+		_add(bg, _sphere(0.022), STEEL, Vector3(0.325, 0.128, sz))
+	for i in 4:
+		var a := TAU * i / 4.0 + 0.4
+		_add(bg, _sphere(0.014), STEEL, Vector3(-0.03, sin(a) * 0.104, cos(a) * 0.104))
+	_gear(bg, Vector3(0.1, 0.0, 0.095), Vector3(90, 0, 0), 0.04, 0.02, 8)
 	_save(bg, "big_gauntlet")
 	# piston gauntlet (both KESTREL forearms): the standard cuff plus two piston rods and a small teal vent
 	var pg := Node3D.new(); pg.name = "PistonGauntlet"
@@ -201,13 +209,13 @@ func _new_props() -> void:
 	_add(ap, _panel(0.3, 0.3, 0.05, 0.034), L_DARK, Vector3(0, 0.3, 0.0))
 	for sx in [-0.09, 0.09]: _add(ap, _cyl(0.014, 0.01), BRASS, Vector3(sx, 0.1, 0.022), Vector3(90, 0, 0))
 	_save(ap, "apron")
-	# heavy boots: enlarged foot caps with a brass toe and an ankle cuff (foot axis +Z)
+	# heavy boots: a rounded shoe body, a brass toe cap, an ankle cuff with rivets (foot axis +Z)
 	var bo := Node3D.new(); bo.name = "Boot"
-	var cap := BoxMesh.new(); cap.size = Vector3(0.115, 0.1, 0.25)
-	_add(bo, cap, L_DARK, Vector3(0, 0.0, 0.03))
-	var toe := BoxMesh.new(); toe.size = Vector3(0.13, 0.07, 0.07)
-	_add(bo, toe, BRASS, Vector3(0, -0.01, 0.15))
-	_add(bo, _cyl(0.075, 0.09), L_LEATHER, Vector3(0, 0.08, -0.03))
+	_add(bo, _capsule(0.062, 0.26), L_DARK, Vector3(0, 0.0, 0.03), Vector3(90, 0, 0))
+	_add(bo, _sphere(0.062), BRASS, Vector3(0, -0.005, 0.15), Vector3.ZERO, Vector3(1.05, 0.85, 1.1))
+	_add(bo, _cyl(0.078, 0.1, 16), L_LEATHER, Vector3(0, 0.085, -0.035))
+	_add(bo, _torus(0.07, 0.088), BRASS, Vector3(0, 0.132, -0.035))
+	for sx in [-0.07, 0.07]: _add(bo, _sphere(0.011), STEEL, Vector3(sx, 0.08, -0.035))
 	_save(bo, "boot")
 	# moustache: a wide bar with two upturned tips, in the head frame (front is +Z)
 	var mo := Node3D.new(); mo.name = "Moustache"

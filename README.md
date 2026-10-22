@@ -12,6 +12,10 @@ Phase G0 (scaffold and animation contract). Two placeholder fighters walk, crouc
 - Tests: `GODOT=<path to godot> sh tools/run_tests.sh` (GUT over `tests/`, then a smoke test).
 - Web build: `godot --headless --path . --export-release "Web" build/web/index.html` (needs the 4.7.2 export templates; CI installs them). The build is single-threaded, so it runs on GitHub Pages without special headers.
 
+## Online and mobile
+
+See [docs/ONLINE_AND_MOBILE.md](docs/ONLINE_AND_MOBILE.md): ONLINE menu (rollback netcode, room codes), touch controls and the Android preset.
+
 ## Controls (defaults, rebindable)
 
 | Action | Player 1 | Player 2 |

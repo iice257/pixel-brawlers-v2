@@ -105,3 +105,17 @@ func _finish_round() -> void:
 
 func snapshot() -> Dictionary:
 	return { "phase": phase, "pt": pt, "round": round_no, "wins": wins.duplicate(), "timer": timer_ticks, "rw": round_winner, "mw": match_winner, "world": world.snapshot() }
+
+## Full match state for rollback netcode (the world's own save() plus the round flow).
+func save() -> Dictionary:
+	return { "phase": phase, "pt": pt, "round_no": round_no, "wins": wins.duplicate(), "timer": timer_ticks, "rw": round_winner, "mw": match_winner,
+		"perfect": perfect, "pace": pace.duplicate(), "final": final_round, "world": world.save() }
+
+func restore(s: Dictionary) -> void:
+	phase = s.phase; pt = s.pt; round_no = s.round_no; wins = s.wins.duplicate(); timer_ticks = s.timer
+	round_winner = s.rw; match_winner = s.mw; perfect = s.perfect; pace = s.pace.duplicate(); final_round = s.final
+	world.restore(s.world)
+	events.clear()
+
+func checksum() -> int:
+	return hash(var_to_str(save()))

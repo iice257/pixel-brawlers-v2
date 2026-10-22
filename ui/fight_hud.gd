@@ -138,9 +138,9 @@ func _dial(c: Vector2) -> void:
 func _combo(i: int) -> void:
 	if combo_shown[i] < 2 or combo_fade[i] <= 0.0: return
 	var left := i == 0
-	var k: float = 1.0 + 0.7 * combo_pop[i] * combo_pop[i]
+	var k: float = 1.0 + 0.4 * combo_pop[i] * combo_pop[i]
 	var a := clampf(combo_fade[i] * 2.0, 0.0, 1.0)
-	var origin := Vector2(MARGIN + 6.0 if left else 1280.0 - MARGIN - 6.0, 190.0)
+	var origin := Vector2(MARGIN + 6.0 if left else 1280.0 - MARGIN - 6.0, 262.0)
 	draw_set_transform(origin, -0.08 if left else 0.08, Vector2(k, k))
 	var al := HORIZONTAL_ALIGNMENT_LEFT if left else HORIZONTAL_ALIGNMENT_RIGHT
 	var x: float = 0.0 if left else -320.0

@@ -55,12 +55,19 @@ var _still_tick := -999
 var cpu1: CpuBrain              # --demo: a second CPU drives P1 (capture takes; --seed=N picks the take)
 var demo_seed := 11
 var p2_hp := 0                # --p2hp=N starts P2 with N hit points (demo recording)
+var online := false           # cfg.mode == "online": a RollbackSession over cfg.link drives the match, the local player is link.local_index()
+var link: NetLink
+var session: RollbackSession
+var online_msg := ""          # set when the connection is lost or the peers desync
+var touch: TouchControls
 
 func _ready() -> void:
 	var win := get_window()
 	win.content_scale_size = Vector2i(1280, 720)
 	win.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 	win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	online = cfg.get("mode", "") == "online"
+	if online: link = cfg.link
 	if cfg.has("fighters"): fighter_ids = cfg.fighters.duplicate()
 	if cfg.has("names"): names = cfg.names
 	else: names = fighter_ids.map(func(i: String) -> String: return String(FighterSim.load_data(i).name))
@@ -106,8 +113,14 @@ func _ready() -> void:
 	box_mesh.material_override = bm
 	add_child(box_mesh)
 
+func _exit_tree() -> void:
+	if online and link != null: link.close()
+
 func _reset() -> void:
-	match_sim = MatchSim.new(fighter_ids[0], fighter_ids[1], 1, 3)
+	match_sim = MatchSim.new(fighter_ids[0], fighter_ids[1], int(link.info.seed) if online else 1, 3)
+	if online:
+		session = RollbackSession.new(match_sim, link.local_index())
+		link.bind_session(session)
 	for v in views: v.queue_free()
 	views.clear()
 	var swaps := [0.0, 1.0 if model_ids[0] == model_ids[1] else 0.0]   # same model on both sides: P2 gets the hue swap
@@ -152,12 +165,15 @@ func _build_hud() -> void:
 	rematch.position = Vector2(440, 380); rematch.size = Vector2(400, 220)
 	rematch.add_theme_constant_override("separation", 12)
 	var items := [["REMATCH", _rematch], ["CHARACTER SELECT", func(): exit.emit("select")], ["MAIN MENU", func(): exit.emit("menu")]] if not cfg.is_empty() else [["REMATCH", _reset], ["QUIT", get_tree().quit]]
+	if online: items = [["MAIN MENU", func(): exit.emit("menu")]]
 	for item in items:
 		if item[0] == "QUIT" and OS.has_feature("web"): continue
 		var b := _menu_button(item[0]); b.pressed.connect(item[1]); rematch.add_child(b)
 	rematch.hide()
 	root.add_child(rematch)
 	_build_pause(root)
+	if TouchControls.wanted() and (online or cfg.get("mode", "versus") != "versus" or OS.get_cmdline_user_args().has("--touch")):
+		touch = TouchControls.new(); root.add_child(touch)
 
 func _menu_button(text: String) -> Button:
 	var b := Button.new(); b.text = text; b.focus_mode = Control.FOCUS_ALL
@@ -176,6 +192,7 @@ func _build_pause(root: Control) -> void:
 	title.add_theme_font_size_override("font_size", 72); title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	pause_menu.add_child(title)
 	var rows := [["RESUME", func(): _set_pause(false)], ["RESTART", func(): _set_pause(false); _rematch()]]
+	if online: rows = [["RESUME", func(): _set_pause(false)]]           # the match cannot be paused: the menu is an overlay
 	if cfg.get("mode", "") == "training":
 		dummy_btn = _menu_button("DUMMY: " + DUMMY[dummy].to_upper()); dummy_btn.pressed.connect(_next_dummy)
 		pause_menu.add_child(dummy_btn)
@@ -187,7 +204,7 @@ func _build_pause(root: Control) -> void:
 	root.add_child(pause_menu)
 
 func _set_pause(on: bool) -> void:
-	paused = on; pause_menu.visible = on
+	paused = on and not online; pause_menu.visible = on
 	if on: pause_menu.get_child(1).grab_focus()
 
 func _next_dummy() -> void:
@@ -231,7 +248,7 @@ func _label(parent: Node, pos: Vector2, variation: String) -> Label:
 
 func _unhandled_input(e: InputEvent) -> void:
 	if e.is_action_pressed("pause") and not rematch.visible and seq_dir == "" and shot == "":
-		_set_pause(not paused); get_viewport().set_input_as_handled(); return
+		_set_pause(not pause_menu.visible); get_viewport().set_input_as_handled(); return
 	if e is InputEventKey and e.pressed and not e.echo:
 		if e.physical_keycode == KEY_F2: show_boxes = not show_boxes
 		elif e.physical_keycode == KEY_F3: info.visible = not info.visible
@@ -278,8 +295,25 @@ func _tick(dt: float, inputs: Array) -> void:
 	if p2_hp > 0 and match_sim.phase == "call": match_sim.world.fighters[1].hp = p2_hp   # demo: every round ends fast
 	var before: String = match_sim.phase
 	match_sim.step(inputs)
+	_present(dt, before, match_sim.world.events)
+
+## Online: one rollback session tick, then the same presentation. Events come de-duplicated from the session (resimulated ticks do not replay SFX).
+func _online_tick(dt: float) -> void:
+	link.poll(dt)
+	if online_msg == "":
+		if session.desync: online_msg = "OUT OF SYNC"
+		elif session.is_disconnected() or link.transport.error != "": online_msg = "CONNECTION LOST"
+	if online_msg != "":
+		_present(dt, match_sim.phase, [])
+		return
+	var before: String = match_sim.phase
+	session.advance(_read("p1"))
+	link.poll(0.0)                 # send this tick's packets right away
+	_present(dt, before, session.events)
+
+func _present(dt: float, before: String, events: Array) -> void:
 	if match_sim.phase != before: _announce()
-	for e in match_sim.world.events:
+	for e in events:
 		var d: FighterSim = match_sim.world.fighters[e.def] if e.has("def") else null
 		var dir := signf(d.x - match_sim.world.fighters[e.att].x) if d else 0.0
 		match e.type:
@@ -344,6 +378,10 @@ func _physics_process(dt: float) -> void:
 		return
 	if paused: return
 	if cfg.get("mode", "") == "training": _training_rules()
+	if online:
+		_online_tick(dt)
+		_cam_follow(false); _hud(); _draw_boxes()
+		return
 	var p1_in: Dictionary = cpu1.think(match_sim.world.fighters) if cpu1 and match_sim.inputs_live() else _read("p1")
 	_tick(dt, _scripted() if script_mode else [p1_in, _p2_input()])
 	_cam_follow(false)
@@ -371,7 +409,9 @@ func _hud() -> void:
 	var pop := 1.0
 	if match_sim.phase in ["ko", "timeup", "call", "fight", "over"] and match_sim.pt < 4: pop = 1.0 + 1.1 * (1.0 - match_sim.pt / 4.0)   # 4-frame punch-in
 	banner_pivot.scale = Vector2(pop, pop)
-	var over: bool = match_sim.phase == "over"
+	var over: bool = match_sim.phase == "over" or online_msg != ""
+	if online_msg != "": banner.text = online_msg
+	if touch: touch.enabled = not paused and not over and not pause_menu.visible
 	if over and not rematch.visible: rematch.get_child(0).grab_focus()
 	rematch.visible = over
 	info.text = "P1 %s | P2 %s | combo %d | %d fps | %s | %d draws" % [fs[0].anim(), fs[1].anim(), fs[1].combo_hits, Engine.get_frames_per_second(), RenderingServer.get_current_rendering_method(), RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)]

@@ -125,6 +125,7 @@ func _show(name: String) -> void:
 		"select": screen = _select()
 		"stage": screen = _stage()
 		"vs": screen = _vs()
+		"online": screen = _online()
 	if screen: _ui.add_child(screen)
 
 func _goto(name: String) -> void:
@@ -208,6 +209,7 @@ func _menu() -> Control:
 		["VERSUS", func(): mode = "versus"; _goto("select")],
 		["VS CPU", func(): mode = "cpu"; _goto("select")],
 		["TRAINING", func(): mode = "training"; _goto("select")],
+		["ONLINE", func(): _goto("online")],
 		["CONTROLS", func(): _goto("controls")],
 		["OPTIONS", func(): _goto("options")],
 	]
@@ -311,6 +313,27 @@ func _start_fight() -> void:
 		f.cfg = {"mode": mode, "tier": tier, "stage": stage_id,
 			"fighters": [roster()[picks[0]].id, roster()[picks[1]].id],
 			"names": [roster()[picks[0]].name, roster()[picks[1]].name], "models": [roster()[picks[0]].model, roster()[picks[1]].model]}
+		f.exit.connect(_on_fight_exit)
+		fight = f; add_child(f))
+
+func _online() -> Control:
+	var l := OnlineLobby.new(); l.flow = self
+	return l
+
+## The lobby hands over a connected NetLink: build the fight from what both peers agreed on in the handshake.
+func start_online(link: NetLink) -> void:
+	if _busy or fight != null: return
+	var ids: Array = link.info.fighters
+	var by_id := {}
+	for r in roster(): by_id[String(r.id)] = r
+	_go(func():
+		if screen: screen.queue_free(); screen = null
+		_bg.visible = false; _ui.visible = false
+		var f: Node = load("res://a0/a0_fight.tscn").instantiate()
+		f.cfg = {"mode": "online", "link": link, "stage": String(link.info.stage),
+			"fighters": ids.duplicate(),
+			"names": ids.map(func(i): return by_id[String(i)].name),
+			"models": ids.map(func(i): return by_id[String(i)].model)}
 		f.exit.connect(_on_fight_exit)
 		fight = f; add_child(f))
 
