@@ -21,6 +21,7 @@ var seq_from := 0
 var shot := ""
 var shot_ticks := 0
 var script_mode := false
+var script_loco := false   # --script=loco: idle, walk in, crouch, walk back, against a standing opponent (locomotion QA)
 var show_boxes := false
 var box_mesh: MeshInstance3D
 var _script_t := 0
@@ -81,6 +82,7 @@ func _ready() -> void:
 		if a.begins_with("--shot="): shot = a.trim_prefix("--shot=")
 		elif a.begins_with("--ticks="): shot_ticks = int(a.trim_prefix("--ticks="))
 		elif a == "--script": script_mode = true
+		elif a == "--script=loco": script_mode = true; script_loco = true
 		elif a.begins_with("--seq="): seq_dir = a.trim_prefix("--seq=")
 		elif a.begins_with("--every="): seq_every = int(a.trim_prefix("--every="))
 		elif a.begins_with("--from="): seq_from = int(a.trim_prefix("--from="))
@@ -289,6 +291,12 @@ func _scripted() -> Array:
 	var a := WorldSim.neutral(); var b := WorldSim.neutral()
 	if not match_sim.inputs_live(): return [a, b]
 	_script_t += 1
+	if script_loco:
+		var t := _script_t % 240
+		if t >= 40 and t < 62: a.right = true
+		elif t >= 62 and t < 112: a.down = true
+		elif t >= 112 and t < 172: a.left = true
+		return [a, b]
 	var fs := match_sim.world.fighters
 	var gap := absf(fs[1].x - fs[0].x)
 	if gap > 58.0 and _script_t < 300:

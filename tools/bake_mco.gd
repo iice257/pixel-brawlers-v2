@@ -16,15 +16,22 @@ const CHILD := {"Hips": "Spine", "Spine": "Chest", "Chest": "UpperChest", "Upper
 	"LeftUpperLeg": "LeftLowerLeg", "LeftLowerLeg": "LeftFoot", "LeftFoot": "LeftToes",
 	"RightUpperLeg": "RightLowerLeg", "RightLowerLeg": "RightFoot", "RightFoot": "RightToes"}
 # clip name in ext.res -> [fbx, loops]
+# clip -> [fbx, loops, fighting stance: yaw/tilt locked and the keyed guard layered over the arms]
 const CLIPS := {
-	"Fight_Idle": ["MOB1_Stand_Relaxed_Fgt_v1", true],
-	"Idle": ["MOB1_Stand_Relaxed_Idle_v2", true],
-	"Walk_F": ["MOB1_Walk_F", true],
-	"Jog_F": ["MOB1_Jog_F", true],
-	"Crouch_Walk_F": ["MOB1_CrouchWalk_F", true],
-	"Idle_To_Walk": ["MOB1_Stand_Relaxed_to_Walk_F", false],
-	"Roll_F": ["Ninja1_Combat_Forward_Roll_v1", false],
+	"Fight_Idle": ["MOB1_Stand_Relaxed_Fgt_v1", true, true],
+	"Idle": ["MOB1_Stand_Relaxed_Idle_v2", true, true],
+	"Walk_F": ["MOB1_Walk_F", true, true],
+	"Jog_F": ["MOB1_Jog_F", true, true],
+	"Crouch_Walk_F": ["MOB1_CrouchWalk_F", true, true],
+	"Idle_To_Walk": ["MOB1_Stand_Relaxed_to_Walk_F", false, true],
+	"Roll_F": ["Ninja1_Combat_Forward_Roll_v1", false, false],
 }
+## A fighter stays side-on to the opponent: the hips may yaw this far off the facing axis, each spine bone and the head a little more (degrees).
+## Tilt is the lean from vertical: a fighting crouch keeps the torso up and the head looking at the opponent.
+const LIMITS := {"Hips": {"yaw": 8.0}, "Spine": {"yaw": 12.0, "tilt": 20.0}, "Chest": {"yaw": 14.0, "tilt": 22.0},
+	"UpperChest": {"yaw": 15.0, "tilt": 24.0}, "Neck": {"yaw": 20.0, "tilt": 22.0}, "Head": {"yaw": 22.0, "tilt": 18.0}}
+const GUARD_CLIP := "Punch_Jab"   # the keyed boxing guard (fighters/shared/anims.res) at t=0: arms and fingers come from here
+const ARM_WORDS := ["Shoulder", "UpperArm", "LowerArm", "Hand", "Thumb", "Index", "Middle", "Ring", "Little"]
 
 func _init() -> void:
 	var tgt_scene: Node = (load("res://fighters/a0/model.scn") as PackedScene).instantiate()
@@ -40,6 +47,7 @@ func _init() -> void:
 		var ap: AnimationPlayer = inst.find_children("*", "AnimationPlayer", true, false)[0]
 		var a := ap.get_animation(ap.get_animation_list()[0])
 		var ctx := _context(src, tgt)
+		ctx["stance"] = CLIPS[name][2]
 		var out := _retarget(a, src, tgt, map, ctx)
 		out.loop_mode = Animation.LOOP_LINEAR if CLIPS[name][1] else Animation.LOOP_NONE
 		lib.add_animation(name, out)
@@ -116,6 +124,8 @@ func _retarget(a: Animation, src: Skeleton3D, tgt: Skeleton3D, map: Dictionary, 
 	var pos_out := out.add_track(Animation.TYPE_POSITION_3D)
 	out.track_set_path(pos_out, NodePath("Skeleton3D:Hips"))
 	var src_g: Array = ctx.src_g; var tgt_g: Array = ctx.tgt_g
+	var stance: bool = ctx.stance
+	var guard := _guard_locals(tgt)
 	var src_order := _order(src); var tgt_order := _order(tgt)
 	var hips := tgt.find_bone("Hips"); var pel := src.find_bone("pelvis")
 	var rest_t := tgt.get_bone_rest(hips).origin
@@ -136,10 +146,16 @@ func _retarget(a: Animation, src: Skeleton3D, tgt: Skeleton3D, map: Dictionary, 
 			if i == pel and pos_tr.has("pelvis"): o = a.position_track_interpolate(pos_tr["pelvis"], t)
 			pa[i] = o if par < 0 else (pa[par] as Vector3) + (ga[par] as Quaternion) * o
 		var gt := []; gt.resize(tgt.get_bone_count())
+		var corr := []; corr.resize(tgt.get_bone_count())   # global-frame correction already applied to a bone and inherited by its children
 		for i in tgt_order:
 			var par := tgt.get_bone_parent(i)
 			var g: Quaternion
-			if tgt_names.has(i):
+			var nm := tgt.get_bone_name(i)
+			var layered := stance and guard.has(nm) and par >= 0
+			corr[i] = Quaternion.IDENTITY if par < 0 else corr[par]
+			if layered:
+				g = (gt[par] as Quaternion) * (guard[nm] as Quaternion)
+			elif tgt_names.has(i):
 				var si: int = tgt_names[i]
 				g = ((ga[si] as Quaternion) * (src_g[si] as Quaternion).inverse()) * (tgt_g[i] as Quaternion)
 				var cn: String = CHILD.get(tgt.get_bone_name(i), "")
@@ -154,6 +170,12 @@ func _retarget(a: Animation, src: Skeleton3D, tgt: Skeleton3D, map: Dictionary, 
 			else:
 				var rest_local := tgt.get_bone_rest(i).basis.get_rotation_quaternion()
 				g = rest_local if par < 0 else (gt[par] as Quaternion) * rest_local
+			if not layered:
+				g = (corr[i] as Quaternion) * g
+				if stance and LIMITS.has(nm):
+					var fix := _limit(g, tgt_g[i] as Quaternion, LIMITS[nm])
+					g = fix * g
+					corr[i] = fix * (corr[i] as Quaternion)
 			gt[i] = g
 			if tgt_names.has(i):
 				var local: Quaternion = g if par < 0 else (gt[par] as Quaternion).inverse() * g
@@ -185,3 +207,33 @@ func _swing(a: Vector3, b: Vector3) -> Quaternion:
 		var ax := a.cross(Vector3.UP if absf(a.y) < 0.9 else Vector3.RIGHT).normalized()
 		return Quaternion(ax, PI)
 	return Quaternion(a.cross(b).normalized(), acos(clampf(d, -1.0, 1.0)))
+
+## Local rotations of the arm and finger bones in the keyed guard pose.
+func _guard_locals(tgt: Skeleton3D) -> Dictionary:
+	var a: Animation = (load("res://fighters/shared/anims.res") as AnimationLibrary).get_animation(GUARD_CLIP)
+	var out := {}
+	for t in a.get_track_count():
+		if a.track_get_type(t) != Animation.TYPE_ROTATION_3D: continue
+		var bn := str(a.track_get_path(t)).get_slice(":", 1)
+		for w in ARM_WORDS:
+			if bn.contains(w): out[bn] = a.rotation_track_interpolate(t, 0.0)
+	return out
+
+## The rotation (global frame) that pulls `g` back inside the yaw and tilt limits of its bone. `rest_g` is the bone's rest orientation, facing +Z.
+func _limit(g: Quaternion, rest_g: Quaternion, lim: Dictionary) -> Quaternion:
+	var out := Quaternion.IDENTITY
+	var d := g * rest_g.inverse()
+	var fwd := d * Vector3.BACK
+	var yaw := atan2(fwd.x, fwd.z)
+	var ymax := deg_to_rad(float(lim.yaw))
+	var ex := yaw - clampf(yaw, -ymax, ymax)
+	if absf(ex) > 1e-5:
+		out = Quaternion(Vector3.UP, -ex)
+		d = out * d
+	if lim.has("tilt"):
+		var up := d * Vector3.UP
+		var tilt := acos(clampf(up.y, -1.0, 1.0))
+		var tmax := deg_to_rad(float(lim.tilt))
+		if tilt > tmax + 1e-5 and up.cross(Vector3.UP).length() > 1e-6:
+			out = Quaternion(up.cross(Vector3.UP).normalized(), tilt - tmax) * out
+	return out

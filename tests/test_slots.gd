@@ -28,3 +28,22 @@ func test_missing_voice_line_plays_tone() -> void:
 	var p := Sfx.Pool.new(2); add_child_autofree(p)
 	p.play("voice_time")
 	assert_eq(p.players[0].stream, Sfx.tone(), "voice_time has no file: placeholder tone")
+
+## A fighter stays side-on to the opponent: every stance clip keeps hips and torso within 15 degrees of the facing axis (the roll is a tumble, not a stance).
+func test_mocap_clips_stay_on_the_fighting_line() -> void:
+	var lib := AnimSource.library()
+	for clip in lib.get_animation_list():
+		if clip == &"Roll_F": continue
+		var a := lib.get_animation(clip)
+		var tracks := {}
+		for t in a.get_track_count():
+			if a.track_get_type(t) == Animation.TYPE_ROTATION_3D: tracks[str(a.track_get_path(t)).get_slice(":", 1)] = t
+		var worst := 0.0
+		for i in 24:
+			var tm := a.length * i / 24.0
+			var g := Quaternion.IDENTITY
+			for bn in ["Hips", "Spine", "Chest", "UpperChest"]:
+				if tracks.has(bn): g = g * a.rotation_track_interpolate(tracks[bn], tm)
+				var f := g * Vector3.BACK
+				worst = maxf(worst, absf(rad_to_deg(atan2(f.x, f.z))))
+		assert_lt(worst, 15.5, "%s: torso yaw off the fighting line" % clip)
