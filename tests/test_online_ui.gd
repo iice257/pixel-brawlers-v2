@@ -67,3 +67,8 @@ func test_supabase_channel_routes_broadcasts_to_the_right_role() -> void:
 func test_signalling_backend_is_chosen_from_config() -> void:
 	var ch := NetConfig.make_signal(true)
 	assert_true(ch is SignalSupabase, "data/net.json selects the Supabase Realtime channel")
+
+func test_rtc_diag_names_each_stage() -> void:
+	var r := RtcTransport.new(SignalChannel.new())
+	assert_eq(r.diag()[0], "SIGNALLING  CONNECTING")
+	assert_true(String(r.diag()[1]).begins_with("PEER"))

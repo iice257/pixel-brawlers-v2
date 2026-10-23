@@ -11,6 +11,7 @@ var phase := "menu"           # menu | hosting | joining
 var _col: VBoxContainer
 var _status: Label
 var _code: Label
+var _diag: Label
 var _edit: LineEdit
 var _rtc: RtcTransport
 var _age := 0.0
@@ -128,13 +129,14 @@ func _waiting_screen(text: String) -> void:
 	if _edit: _edit.queue_free(); _edit = null
 	_status = flow._label(text, 44, Flow.STEAM, 6); _status.position = Vector2(100, 400); add_child(_status)
 	_status.set_meta("lobby", true)
+	_diag = flow._label("", 18, Flow.BRASS, 2); _diag.position = Vector2(100, 455); _diag.set_meta("lobby", true); add_child(_diag)
 	if phase == "hosting":
 		var cap := flow._label("YOUR ROOM CODE", 30, Flow.BRASS, 5); cap.position = Vector2(100, 190); cap.set_meta("lobby", true); add_child(cap)
 		_code = flow._label("...", 130, Flow.RED, 10); _code.position = Vector2(100, 220); _code.set_meta("lobby", true); add_child(_code)
 		_update_code()
 	var tw := _status.create_tween().set_loops()
 	tw.tween_property(_status, "modulate:a", 0.35, 0.7); tw.tween_property(_status, "modulate:a", 1.0, 0.7)
-	_col = flow._column(100, 520); add_child(_col)
+	_col = flow._column(100, 640); add_child(_col)
 	var cancel := flow._button("CANCEL", _menu); _col.add_child(cancel)
 	cancel.call_deferred("grab_focus")
 
@@ -149,13 +151,15 @@ func _update_code() -> void:
 
 func _close_link() -> void:
 	if link != null: link.close()
-	link = null; _rtc = null; _code = null; _status = null
+	link = null; _rtc = null; _code = null; _status = null; _diag = null
 
 func _process(dt: float) -> void:
 	if link == null or _handed: return
 	link.poll(dt)
 	_age += dt
 	if phase == "hosting": _update_code()
+	if _diag != null and _rtc != null: _diag.text = "
+".join(_rtc.diag())
 	if link.transport.error != "" and link.state != "ready":
 		var msg := link.transport.error.to_upper()
 		_close_link(); _fail(msg); return
@@ -165,7 +169,9 @@ func _process(dt: float) -> void:
 		flow.start_online(link)
 		return
 	if phase == "joining" and _age > 60.0:
-		_close_link(); _fail("NO RESPONSE FROM THAT ROOM")
+		var stuck := _rtc.stuck_at() if _rtc != null else ""
+		_close_link(); _fail("NO RESPONSE FROM THAT ROOM" + ("
+STUCK AT: " + stuck if stuck != "" else ""))
 
 func _exit_tree() -> void:
 	if not _handed: _close_link()
