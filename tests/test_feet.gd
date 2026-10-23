@@ -53,3 +53,38 @@ func test_walk_planted_foot_does_not_slide() -> void:
 						worst = maxf(worst, absf(cur[n].z - prev[n].z + fwd * body * dt))
 			prev = cur
 		assert_lt(worst, 0.03, "%s: planted foot drifts under 3 cm per 12 fps step" % pair[0])
+
+func _ext_pose(name: String, clock: float, speed := 0.0) -> void:
+	if not _ap.has_animation_library("ext"): _ap.add_animation_library("ext", AnimSource.library())
+	var r := AnimSource.resolve(name, 0.0, clock, speed)
+	_ap.play(r[0]); _ap.seek(r[1], true); _ap.pause(); _ap.advance(0.0)
+	await get_tree().process_frame
+
+func test_mocap_idle_and_crouch_stand_level_on_the_floor() -> void:
+	for pair in [["idle", 0.5], ["idle", 2.5], ["idle", 4.2], ["crouch", 0.0]]:
+		await _ext_pose(pair[0], pair[1])
+		assert_lt(absf(_foot("LeftFoot").y - _foot("RightFoot").y), 0.08, "%s at %s: feet level" % pair)
+
+func test_mocap_walk_planted_foot_does_not_slide() -> void:
+	if not _ap.has_animation_library("ext"): _ap.add_animation_library("ext", AnimSource.library())
+	for pair in [["walk_f", 1.75], ["walk_b", 1.55]]:
+		var body := float(pair[1]) * 1.0
+		var fwd := 1.0 if pair[0] == "walk_f" else -1.0
+		var dt := 1.0 / 12.0
+		var errs: Array = []
+		var prev := {}
+		for i in 13:
+			var e: Dictionary = AnimSource.doc().map[pair[0]]
+			var len := AnimSource.library().get_animation(StringName(e.clip)).length
+			var t := fposmod(i * dt * body / float(e.mps), len)   # un-stepped: the 12 fps cel hold is a look choice, this checks the stride itself
+			_ap.play("ext/" + String(e.clip)); _ap.seek(t if fwd > 0.0 else len - t - 0.02, true); _ap.pause(); _ap.advance(0.0)
+			await get_tree().process_frame
+			var l := _foot("LeftFoot"); var r := _foot("RightFoot")
+			var low := "LeftFoot" if l.y < r.y else "RightFoot"
+			var cur := {"n": low, "p": l if low == "LeftFoot" else r}
+			if i > 0 and prev.n == cur.n:
+				errs.append(absf(cur.p.z - prev.p.z + fwd * body * dt))
+			prev = cur
+		errs.sort()
+		assert_lt(float(errs[errs.size() / 2]), 0.02, "%s: typical planted-foot drift under 2 cm per 12 fps step" % pair[0])
+		assert_lt(float(errs[errs.size() - 1]), 0.12, "%s: worst step (foot hand-over) under 12 cm" % pair[0])

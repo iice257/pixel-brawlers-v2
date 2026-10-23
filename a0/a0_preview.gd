@@ -1,13 +1,13 @@
 extends Node3D
 ## A0 look test: one baked fighter on a flat floor with the fixed side camera. --shot=<png> saves a frame and quits.
-## User args: --shot=<file> --anim=<name> --t=<seconds into the clip> --face=<1|-1> --black (silhouette test)
+## User args: --shot=<file> --anim=<name> --t=<seconds into the clip> --face=<1|-1> --black (silhouette test) --key=<PoseLib pose> --drop (floor-snap like the fight view); --anim=ext/<clip> plays an imported clip
 const WORLD_PER_PX := 0.018   # sim pixels to metres: a 100 px fighter is 1.8 m
 
 var model: Node3D
 var cam: Camera3D
 
 func _ready() -> void:
-	var shot := ""; var anim := ""; var t := 0.0; var face := 1; var black := false; var hit := 0.0; var heavy := false; var ground := false; var mark := -1; var mid := "a0"
+	var shot := ""; var anim := ""; var t := 0.0; var face := 1; var black := false; var hit := 0.0; var heavy := false; var ground := false; var mark := -1; var mid := "a0"; var key := ""; var drop := false
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--shot="): shot = a.trim_prefix("--shot=")
 		elif a.begins_with("--anim="): anim = a.trim_prefix("--anim=")
@@ -19,6 +19,8 @@ func _ready() -> void:
 		elif a.begins_with("--hit="): hit = float(a.trim_prefix("--hit="))
 		elif a == "--heavy": heavy = true
 		elif a == "--ground": ground = true
+		elif a.begins_with("--key="): key = a.trim_prefix("--key=")
+		elif a == "--drop": drop = true
 	get_window().content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED
 	var we := WorldEnvironment.new()
 	var env := Environment.new()
@@ -34,10 +36,15 @@ func _ready() -> void:
 	model.add_child(ap)
 	ap.root_node = ap.get_path_to(model)
 	ap.add_animation_library("", load("res://fighters/shared/anims.res"))
+	if AnimSource.library() != null: ap.add_animation_library("ext", AnimSource.library())
 	if anim != "":
 		ap.play(anim); ap.seek(t, true); ap.pause(); ap.advance(0.0)
 		var sk: Skeleton3D = model.get_node("Skeleton3D")
+		if key != "": PoseLib.apply(sk, PoseLib.key(key, ""))
 		FighterView._exaggerate(sk, hit, heavy)
+		if drop:
+			await get_tree().process_frame
+			model.position.y = PoseLib.floor_drop(sk)
 		if ground:
 			await get_tree().process_frame
 			model.position.y = FighterView._ground_drop(sk)

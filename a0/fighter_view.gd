@@ -65,7 +65,7 @@ func _pose() -> Array:
 	var loop_t := floorf(clock * STEP_FPS) / STEP_FPS
 	if AnimSource.has(a):
 		var span := float(maxi(int(f.cur.startup) + int(f.cur.active) + int(f.cur.recovery), 1)) if f.attacking() else 1.0
-		return AnimSource.resolve(a, float(f.st) / span, loop_t)
+		return AnimSource.resolve(a, float(f.st) / span, clock, f.move_speed() * WORLD_PER_PX * 60.0 if f.state in ["walk_f", "walk_b", "dash"] else 0.0)
 	if f.attacking() and PoseLib.has_pose(a):
 		var b := PoseLib.base(a)
 		return [b[0], b[1], PoseLib.key(a, _phase(f))]

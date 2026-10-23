@@ -1,5 +1,33 @@
 {
-	"_doc": "Per sim anim name (state or move id): a purchased/imported clip overrides the hand-keyed PoseLib pose or UAL clip. clip = name in assets/anims/ext.res; mode = loop | hold | move (clip spans the move) ; rate = playback multiplier; pose = optional PoseLib key whose rotations are layered on top.",
+	"_doc": "Per sim anim name (state or move id): a purchased/imported clip overrides the hand-keyed PoseLib pose or UAL clip. clip = name in assets/anims/ext.res; mode = loop | hold | move (clip spans the move) ; rate = playback multiplier; pose = optional PoseLib key whose rotations are layered on top. mode stride = ground-speed-scaled loop (mps = the clip's planted-foot speed on our rig, from tools/bake_mco.gd; reverse = play backwards; fast_clip above fast_above m/s swaps in the run clip).",
 	"clips": "res://assets/anims/ext.res",
-	"map": {}
+	"map": {
+		"idle": {
+			"clip": "Fight_Idle",
+			"mode": "loop",
+			"rate": 1.0
+		},
+		"walk_f": {
+			"clip": "Walk_F",
+			"mode": "stride",
+			"mps": 1.198,
+			"fast_clip": "Jog_F",
+			"fast_above": 1.8,
+			"fast_mps": 2.272
+		},
+		"walk_b": {
+			"clip": "Walk_F",
+			"mode": "stride",
+			"mps": 1.198,
+			"reverse": true,
+			"fast_clip": "Jog_F",
+			"fast_above": 1.8,
+			"fast_mps": 2.272
+		},
+		"crouch": {
+			"clip": "Crouch_Walk_F",
+			"mode": "hold",
+			"t": 0.77
+		}
+	}
 }
