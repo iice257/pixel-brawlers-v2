@@ -292,10 +292,10 @@ func _scripted() -> Array:
 	if not match_sim.inputs_live(): return [a, b]
 	_script_t += 1
 	if script_loco:
-		var t := _script_t % 240
-		if t >= 40 and t < 62: a.right = true
-		elif t >= 62 and t < 112: a.down = true
-		elif t >= 112 and t < 172: a.left = true
+		var t := _script_t % 260
+		if t >= 60 and t < 82: a.right = true
+		elif t >= 82 and t < 132: a.down = true
+		elif t >= 132 and t < 192: a.left = true
 		return [a, b]
 	var fs := match_sim.world.fighters
 	var gap := absf(fs[1].x - fs[0].x)

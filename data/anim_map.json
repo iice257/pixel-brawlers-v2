@@ -12,7 +12,7 @@
 			"mode": "stride",
 			"mps": 1.198,
 			"fast_clip": "Jog_F",
-			"fast_above": 1.8,
+			"fast_above": 3.0,
 			"fast_mps": 2.272
 		},
 		"walk_b": {
@@ -21,7 +21,7 @@
 			"mps": 1.198,
 			"reverse": true,
 			"fast_clip": "Jog_F",
-			"fast_above": 1.8,
+			"fast_above": 3.0,
 			"fast_mps": 2.272
 		},
 		"crouch": {

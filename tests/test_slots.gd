@@ -16,7 +16,8 @@ func test_stride_clock_scales_with_ground_speed() -> void:
 	var fast := AnimSource.resolve("walk_f", 0.0, 1.0, 1.2)
 	assert_eq(slow[0], "ext/Walk_F")
 	assert_almost_eq(float(fast[1]), fposmod(float(slow[1]) * 2.0, 1.2), 0.1)
-	assert_eq(AnimSource.resolve("walk_f", 0.0, 1.0, 3.0)[0], "ext/Jog_F")
+	assert_eq(AnimSource.resolve("walk_f", 0.0, 1.0, 2.27)[0], "ext/Walk_F")   # ordinary walking stays on Walk
+	assert_eq(AnimSource.resolve("walk_f", 0.0, 1.0, 4.5)[0], "ext/Jog_F")      # a dash swaps in Jog
 	assert_gt(float(AnimSource.resolve("walk_b", 0.0, 0.1, 1.2)[1]), 1.0)
 
 func test_fx_slots_fall_back_to_the_spark() -> void:

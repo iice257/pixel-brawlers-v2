@@ -30,6 +30,13 @@ const CLIPS := {
 ## Tilt is the lean from vertical: a fighting crouch keeps the torso up and the head looking at the opponent.
 const LIMITS := {"Hips": {"yaw": 8.0}, "Spine": {"yaw": 12.0, "tilt": 20.0}, "Chest": {"yaw": 14.0, "tilt": 22.0},
 	"UpperChest": {"yaw": 15.0, "tilt": 24.0}, "Neck": {"yaw": 20.0, "tilt": 22.0}, "Head": {"yaw": 22.0, "tilt": 18.0}}
+## Fighting-idle clips take their legs from a solved wide staggered base instead of the mocap (whose feet stand together): the lead foot goes forward,
+## the rear foot back, both stay planted, and the hips drop so the knees bend. The mocap hip sway, torso and breathing are kept.
+const BASE_CLIPS := ["Fight_Idle", "Idle"]
+const BASE_LEAD := "Left"            # orthodox: left foot (and left jab hand) forward
+const BASE_STEP := 0.30              # each foot this far from the hips along the fighting line, in leg lengths (feet end up 0.6 leg lengths apart)
+const BASE_HIP_DROP := 0.05          # hips lowered by this fraction of their standing height
+const LEG_BONES := ["UpperLeg", "LowerLeg", "Foot", "Toes"]
 const GUARD_CLIP := "Punch_Jab"   # the keyed boxing guard (fighters/shared/anims.res) at t=0: arms and fingers come from here
 const ARM_WORDS := ["Shoulder", "UpperArm", "LowerArm", "Hand", "Thumb", "Index", "Middle", "Ring", "Little"]
 
@@ -48,6 +55,7 @@ func _init() -> void:
 		var a := ap.get_animation(ap.get_animation_list()[0])
 		var ctx := _context(src, tgt)
 		ctx["stance"] = CLIPS[name][2]
+		ctx["base"] = BASE_CLIPS.has(name)
 		var out := _retarget(a, src, tgt, map, ctx)
 		out.loop_mode = Animation.LOOP_LINEAR if CLIPS[name][1] else Animation.LOOP_NONE
 		lib.add_animation(name, out)
@@ -125,6 +133,7 @@ func _retarget(a: Animation, src: Skeleton3D, tgt: Skeleton3D, map: Dictionary, 
 	out.track_set_path(pos_out, NodePath("Skeleton3D:Hips"))
 	var src_g: Array = ctx.src_g; var tgt_g: Array = ctx.tgt_g
 	var stance: bool = ctx.stance
+	var base: bool = ctx.base
 	var guard := _guard_locals(tgt)
 	var src_order := _order(src); var tgt_order := _order(tgt)
 	var hips := tgt.find_bone("Hips"); var pel := src.find_bone("pelvis")
@@ -132,6 +141,12 @@ func _retarget(a: Animation, src: Skeleton3D, tgt: Skeleton3D, map: Dictionary, 
 	var rest_p := src.get_bone_rest(pel).origin
 	for f in int(ceil(a.length * FPS)) + 1:
 		var t := minf(f / FPS, a.length)
+		var p_s := rest_p
+		if pos_tr.has("pelvis"): p_s = a.position_track_interpolate(pos_tr["pelvis"], t)
+		var d := (p_s - rest_p) * float(ctx.scale)
+		d.x = 0.0; d.z = 0.0
+		if base: d.y -= BASE_HIP_DROP * rest_t.y
+		var leg_g := {}   # solved global orientations of the staggered base legs
 		var ga := []; ga.resize(src.get_bone_count())
 		for i in src_order:
 			var bn := src.get_bone_name(i)
@@ -153,6 +168,15 @@ func _retarget(a: Animation, src: Skeleton3D, tgt: Skeleton3D, map: Dictionary, 
 			var nm := tgt.get_bone_name(i)
 			var layered := stance and guard.has(nm) and par >= 0
 			corr[i] = Quaternion.IDENTITY if par < 0 else corr[par]
+			var leg_side := ""
+			if base:
+				for side in ["Left", "Right"]:
+					if nm.begins_with(side) and LEG_BONES.has(nm.trim_prefix(side)): leg_side = side
+			if leg_side != "":
+				if nm == leg_side + "UpperLeg": _solve_leg(tgt, leg_side, rest_t + d, gt[par], leg_g)
+				gt[i] = leg_g[nm]
+				out.rotation_track_insert_key(rot_out[i], t, ((gt[par] as Quaternion).inverse() * (gt[i] as Quaternion)).normalized())
+				continue
 			if layered:
 				g = (gt[par] as Quaternion) * (guard[nm] as Quaternion)
 			elif tgt_names.has(i):
@@ -180,12 +204,30 @@ func _retarget(a: Animation, src: Skeleton3D, tgt: Skeleton3D, map: Dictionary, 
 			if tgt_names.has(i):
 				var local: Quaternion = g if par < 0 else (gt[par] as Quaternion).inverse() * g
 				out.rotation_track_insert_key(rot_out[i], t, local.normalized())
-		var p_s := rest_p
-		if pos_tr.has("pelvis"): p_s = a.position_track_interpolate(pos_tr["pelvis"], t)
-		var d := (p_s - rest_p) * float(ctx.scale)
-		d.x = 0.0; d.z = 0.0
 		out.position_track_insert_key(pos_out, t, rest_t + d)
 	return out
+
+## Two-bone IK for one leg of the staggered base: the ankle goes to a fixed spot (lead foot forward, rear foot back, level with the rest ankle), the knee bends forward.
+## Fills leg_g with the global orientations of that side's UpperLeg, LowerLeg, Foot and Toes (feet and toes stay at their rest orientation, flat).
+func _solve_leg(tgt: Skeleton3D, side: String, hips_pos: Vector3, hips_g: Quaternion, leg_g: Dictionary) -> void:
+	var ul := tgt.find_bone(side + "UpperLeg"); var ll := tgt.find_bone(side + "LowerLeg"); var ft := tgt.find_bone(side + "Foot")
+	var r_ul := tgt.get_bone_global_rest(ul); var r_ll := tgt.get_bone_global_rest(ll); var r_ft := tgt.get_bone_global_rest(ft)
+	var hips_rest := tgt.get_bone_global_rest(tgt.find_bone("Hips"))
+	var hip := hips_pos + hips_g * (hips_rest.basis.get_rotation_quaternion().inverse() * (r_ul.origin - hips_rest.origin))
+	var l1 := (r_ll.origin - r_ul.origin).length(); var l2 := (r_ft.origin - r_ll.origin).length()
+	var step := BASE_STEP * (l1 + l2) * (1.0 if side == BASE_LEAD else -1.0)
+	var ankle := Vector3(r_ft.origin.x, r_ft.origin.y, hips_pos.z + step)
+	var to := ankle - hip
+	var dist := clampf(to.length(), absf(l1 - l2) + 1e-4, (l1 + l2) * 0.9995)
+	var dir := to.normalized()
+	var cos_a := clampf((l1 * l1 + dist * dist - l2 * l2) / (2.0 * l1 * dist), -1.0, 1.0)
+	var pole := (Vector3.BACK - dir * dir.dot(Vector3.BACK)).normalized()
+	var knee := hip + dir * (l1 * cos_a) + pole * (l1 * sqrt(1.0 - cos_a * cos_a))
+	var q_ul := _swing((r_ll.origin - r_ul.origin).normalized(), (knee - hip).normalized()) * r_ul.basis.get_rotation_quaternion()
+	var q_ll := _swing((r_ft.origin - r_ll.origin).normalized(), (ankle - knee).normalized()) * r_ll.basis.get_rotation_quaternion()
+	leg_g[side + "UpperLeg"] = q_ul; leg_g[side + "LowerLeg"] = q_ll
+	leg_g[side + "Foot"] = tgt.get_bone_global_rest(ft).basis.get_rotation_quaternion()
+	leg_g[side + "Toes"] = tgt.get_bone_global_rest(tgt.find_bone(side + "Toes")).basis.get_rotation_quaternion()
 
 ## Bone indices with every parent before its children.
 func _order(sk: Skeleton3D) -> Array:
